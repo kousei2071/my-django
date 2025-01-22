@@ -28,7 +28,7 @@
             <p>
                 {% if search_query %}「{{ search_query }}」{% endif %}
                 {% if selected_tags %}{% if search_query %}・{% endif %}「{% for tag in selected_tags %}{{ tag.name }}{% if not forloop.last %}、{% endif %}{% endfor %}」{% endif %}
-                で{{ popular_wordbooks.count|add:existing_wordbooks.count }}件の単語帳が見つかりました
+                で{{ popular_wordbooks.count|add:ai_wordbooks.count }}件の単語帳が見つかりました
             </p>
         </div>
     {% endif %}
@@ -53,18 +53,18 @@
         </div>
     </section>
 
-    <!-- 既存の単語帳セクション -->
-    <section class="wordbook-section">
-        <h2 class="section-title">既存の単語帳</h2>
+    <!-- AIの単語帳セクション -->
+    <section class="wordbook-section" style="margin-bottom: 250px;">
+        <h2 class="section-title">AIの単語帳</h2>
         <div class="wordbook-grid">
-            {% for wordbook in existing_wordbooks %}
+            {% for wordbook in ai_wordbooks %}
                 <a href="{% url 'wordbook_detail' wordbook.pk %}" class="wordbook-card">
                     <div class="wordbook-image" style="background-color: {{ wordbook.get_background_color|default:'#fffff0' }};">
                         <img src="{{ wordbook.get_avatar_url }}" alt="{{ wordbook.user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
                     <div class="wordbook-info">
                         <h3>{{ wordbook.title }}</h3>
-                        <p class="card-count">{{ wordbook.card_count }}枚</p>
+                        <p class="card-count">{{ wordbook.card_count }}枚・<img src="{% static 'home/images/like-3d.png' %}" alt="いいね" class="like-icon"> {{ wordbook.like_count|default:0 }}</p>
                     </div>
                 </a>
             {% empty %}

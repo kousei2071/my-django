@@ -157,6 +157,91 @@ class Command(BaseCommand):
                     ('atmosphere', '雰囲気、大気'),
                 ]
             },
+            {
+                'title': '旅行英会話 基本フレーズ',
+                'description': '海外旅行で役立つ基本的な英会話フレーズ。空港、ホテル、レストランなどで使える表現を収録しています。',
+                'tags': ['旅行英語', '初級', '日常会話'],
+                'cards': [
+                    ('Where is the bathroom?', 'トイレはどこですか？'),
+                    ('How much is this?', 'これはいくらですか？'),
+                    ('Can I have the menu?', 'メニューをください'),
+                    ('I would like to check in', 'チェックインをお願いします'),
+                    ('Do you have Wi-Fi?', 'Wi-Fiはありますか？'),
+                    ('Can you recommend something?', '何かおすすめはありますか？'),
+                    ('I need help', '助けが必要です'),
+                    ('Where can I buy tickets?', 'チケットはどこで買えますか？'),
+                    ('Is there a pharmacy nearby?', '近くに薬局はありますか？'),
+                    ('Thank you for your help', 'ご協力ありがとうございます'),
+                ]
+            },
+            {
+                'title': '中学英語 基礎動詞',
+                'description': '中学英語で学ぶ基本的な動詞を集めました。英語学習の土台となる重要な単語ばかりです。',
+                'tags': ['中学英語', '基礎', '単語'],
+                'cards': [
+                    ('be', 'である、いる'),
+                    ('have', '持っている'),
+                    ('do', 'する、行う'),
+                    ('make', '作る、させる'),
+                    ('get', '得る、手に入れる'),
+                    ('take', '取る、持っていく'),
+                    ('go', '行く'),
+                    ('come', '来る'),
+                    ('see', '見る'),
+                    ('know', '知っている'),
+                ]
+            },
+            {
+                'title': 'TOEIC800点レベル 必須単語',
+                'description': 'TOEIC800点を目指すための中上級単語集。ビジネス文書でよく使われる表現を収録しています。',
+                'tags': ['TOEIC800', 'ビジネス英語', '中級'],
+                'cards': [
+                    ('accommodate', '収容する、適応させる'),
+                    ('accomplish', '達成する、完成させる'),
+                    ('accumulate', '蓄積する、集める'),
+                    ('adjacent', '隣接した、近接の'),
+                    ('administer', '管理する、運営する'),
+                    ('allocate', '割り当てる、配分する'),
+                    ('anticipate', '予期する、期待する'),
+                    ('assess', '評価する、査定する'),
+                    ('authorize', '権限を与える、認可する'),
+                    ('comprehend', '理解する、把握する'),
+                ]
+            },
+            {
+                'title': '英検準1級 頻出単語',
+                'description': '英検準1級に頻出する単語を厳選。大学上級レベルの語彙力を身につけることができます。',
+                'tags': ['英検準1級', '上級', '単語'],
+                'cards': [
+                    ('abolish', '廃止する'),
+                    ('abstract', '抽象的な、要約'),
+                    ('accountable', '説明責任のある'),
+                    ('accumulate', '蓄積する'),
+                    ('acknowledge', '認める、承認する'),
+                    ('advocate', '提唱する、支持者'),
+                    ('affluent', '裕福な、豊かな'),
+                    ('aggregate', '集合、総計'),
+                    ('aggressive', '攻撃的な、積極的な'),
+                    ('allocate', '割り当てる'),
+                ]
+            },
+            {
+                'title': 'ビジネスメール 定型表現',
+                'description': 'ビジネスメールで使える定型表現集。丁寧な英語表現を身につけることができます。',
+                'tags': ['ビジネス英語', '中級', '文法'],
+                'cards': [
+                    ('I am writing to inquire about', '～についてお問い合わせいたします'),
+                    ('Thank you for your prompt reply', '迅速なご返信ありがとうございます'),
+                    ('I would appreciate it if you could', '～していただければ幸いです'),
+                    ('Please let me know if you have any questions', 'ご質問がございましたらお知らせください'),
+                    ('I look forward to hearing from you', 'お返事をお待ちしております'),
+                    ('Please find attached', '添付ファイルをご確認ください'),
+                    ('I apologize for the inconvenience', 'ご不便をおかけして申し訳ございません'),
+                    ('Could you please provide', '～をご提供いただけますでしょうか'),
+                    ('We would like to inform you that', '～についてお知らせいたします'),
+                    ('Best regards', '敬具、よろしくお願いいたします'),
+                ]
+            },
         ]
 
         # 単語帳とカードを作成

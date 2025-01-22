@@ -133,11 +133,8 @@ def wordbook_list(request):
     # 人気の単語帳（いいね数順）
     popular_wordbooks = wordbooks_base.annotate(like_count=Count('likes')).order_by('-like_count', '-created_at')[:6]
     
-    # 既存の単語帳（新着順、ログインユーザーが作成したもののみ）
-    if request.user.is_authenticated:
-        existing_wordbooks = WordBook.objects.filter(user=request.user).annotate(like_count=Count('likes')).order_by('-created_at')[:6]
-    else:
-        existing_wordbooks = []
+    # AIの単語帳（新着順、AI生成された単語帳のみ）
+    ai_wordbooks = wordbooks_base.filter(is_ai_generated=True).annotate(like_count=Count('likes')).order_by('-created_at')[:6]
     
     # 人気タグTOP10を取得（使用数順）
     popular_tags = Tag.objects.annotate(
@@ -149,7 +146,7 @@ def wordbook_list(request):
     
     context = {
         'popular_wordbooks': popular_wordbooks,
-        'existing_wordbooks': existing_wordbooks,
+        'ai_wordbooks': ai_wordbooks,
         'popular_tags': popular_tags,  # 人気タグを追加
         'search_query': search_query,  # 検索クエリを追加
         'selected_tags': selected_tags,  # 選択中のタグ
@@ -288,7 +285,7 @@ def wordcard_delete(request, pk):
     
     return redirect('wordbook_detail', pk=wordbook_pk)
 
-#いいねトグル
+# いいねトグル
 @login_required
 def wordbook_like_toggle(request, pk):
     wordbook = get_object_or_404(WordBook, pk=pk)
