@@ -73,12 +73,12 @@
 
         <div class="wordbook-sections-group">
             <section class="wordbook-section">
-                <div class="section-header">
-                    <h2>自分の単語帳</h2>
-                    <div class="section-actions">
-                        <a href="{% url 'wordbook_create' %}" class="btn btn-primary">+ 新しい単語帳を作成</a>
-                        {% if my_wordbooks_count > 3 %}
-                            <a href="{% url 'mypage_wordbooks_all' %}" class="btn btn-secondary">もっと見る</a>
+                <div class="section-header" style="display: flex; align-items: center;">
+                    <h2 style="margin: 0;">自分の単語帳</h2>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <a href="{% url 'wordbook_create' %}" style="color: #007bff; text-decoration: none; font-weight: 500;">+ 新しい単語帳を作成</a>
+                        {% if my_wordbooks_count > 4 %}
+                            <a href="{% url 'mypage_wordbooks_all' %}" style="color: #6c757d; text-decoration: none; font-weight: 500;">もっと見る</a>
                         {% endif %}
                     </div>
                 </div>
@@ -101,10 +101,10 @@
             </section>
 
             <section class="wordbook-section">
-                <div class="section-header">
-                    <h2>保存した単語帳</h2>
-                    {% if saved_wordbooks_count > 6 %}
-                        <a href="{% url 'mypage_bookmarks_all' %}" class="btn btn-secondary">もっと見る</a>
+                <div class="section-header" style="display: flex; align-items: center;">
+                    <h2 style="margin: 0;">保存した単語帳</h2>
+                    {% if saved_wordbooks_count > 4 %}
+                        <a href="{% url 'mypage_bookmarks_all' %}" style="color: #6c757d; text-decoration: none; font-weight: 500;">もっと見る</a>
                     {% endif %}
                 </div>
                 <div class="wordbook-grid saved-wordbooks-grid">
