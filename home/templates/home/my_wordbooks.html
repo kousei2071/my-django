@@ -1,0 +1,97 @@
+{% extends 'home/base.html' %}
+{% load static %}
+
+{% block title %}マイページ - TANKORE{% endblock %}
+
+{% block content %}
+<div class="mypage-container">
+    <!-- 左側：アカウント情報ボックス -->
+    <div class="profile-box">
+        <!-- アバター画像 -->
+        <div class="avatar-container">
+            {% if user.profile.avatar %}
+                <img src="{{ user.profile.avatar.url }}" alt="アバター" class="avatar-image">
+            {% else %}
+                <div class="avatar-placeholder">画像</div>
+            {% endif %}
+        </div>
+
+        <!-- ユーザー情報フィールド -->
+        <div class="profile-fields">
+            <div class="field-group">
+                <label class="field-label">名前</label>
+                <div class="field-input">
+                    {% if user.profile.display_name %}
+                        {{ user.profile.display_name }}
+                    {% else %}
+                        {{ user.username }}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">ユーザー名</label>
+                <div class="field-input">{{ user.username }}</div>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">自己紹介</label>
+                <div class="field-textarea">
+                    {% if user.profile.bio %}
+                        {{ user.profile.bio }}
+                    {% else %}
+                        まだ自己紹介が設定されていません
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">統計情報</label>
+                <div class="field-input">
+                    単語帳: {{ my_wordbooks|length }}個 | カード: {{ total_cards }}枚
+                </div>
+            </div>
+        </div>
+
+        <!-- 編集ボタン -->
+        <div class="profile-actions">
+            <a href="{% url 'profile_edit' %}" class="edit-btn">プロフィール編集</a>
+        </div>
+    </div>
+
+    <!-- 右側：単語帳セクション -->
+    <div class="wordbooks-section">
+        <div class="section-title-container">
+            <div class="wordbook-icon">
+                <div class="icon-circle">画像</div>
+            </div>
+            <h2 class="section-title">自分の単語帳</h2>
+        </div>
+
+        <div class="create-wordbook-area">
+            <a href="{% url 'wordbook_create' %}" class="create-btn">+ 新しい単語帳を作成</a>
+        </div>
+
+        <div class="wordbooks-grid">
+            {% for wordbook in my_wordbooks %}
+                <div class="wordbook-item">
+                    <a href="{% url 'wordbook_detail' wordbook.pk %}" class="wordbook-link">
+                        <div class="wordbook-thumbnail">
+                            <div class="thumbnail-placeholder">画像</div>
+                        </div>
+                        <div class="wordbook-details">
+                            <h3 class="wordbook-title">{{ wordbook.title }}</h3>
+                            <p class="wordbook-count">{{ wordbook.card_count }}枚</p>
+                        </div>
+                    </a>
+                </div>
+            {% empty %}
+                <div class="empty-state">
+                    <p>まだ単語帳がありません</p>
+                    <a href="{% url 'wordbook_create' %}" class="create-first-btn">最初の単語帳を作成する</a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

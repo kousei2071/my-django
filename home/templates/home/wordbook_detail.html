@@ -13,15 +13,30 @@
         
         <div class="wordbook-detail-right">
             <h1 class="wordbook-detail-title">{{ wordbook.title }}</h1>
-            {% if wordbook.user == user %}
-                <a href="{% url 'wordcard_create' wordbook.pk %}" class="btn btn-primary">+ 単語カードを追加</a>
-                <a href="{% url 'wordbook_list' %}" class="btn btn-secondary">単語帳一覧に戻る</a>
-            {% endif %}
+            <p class="wordbook-creator">作成者: {{ wordbook.user.username }}</p>
+            <div class="wordbook-actions">
+                {% if cards %}
+                    <a href="{% url 'quiz_start' wordbook.pk %}" class="btn btn-quiz"><i class="fas fa-play-circle"></i> 問題に取り組む</a>
+                {% endif %}
+                {% if is_owner %}
+                    <a href="{% url 'wordcard_create' wordbook.pk %}" class="btn btn-primary">+ 単語カードを追加</a>
+                {% endif %}
+                <a href="{% url 'home' %}" class="btn btn-secondary">ホームに戻る</a>
+                
+                <!-- 制限時間選択（クイズ開始前に選択） -->
+                <div class="timer-duration-selector">
+                    <label>制限時間:</label>
+                    <button type="button" class="duration-btn" data-duration="5">5秒</button>
+                    <button type="button" class="duration-btn" data-duration="10">10秒</button>
+                    <button type="button" class="duration-btn active" data-duration="25">25秒</button>
+                    <button type="button" class="duration-btn" data-duration="0">制限なし</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="wordcard-list">
-        <h2>単語カード一覧 ({{ cards.count }}枚)</h2>
+        <h2>単語カード一覧 ({{ cards|length }}枚)</h2>
         
         {% if cards %}
             <div class="wordcard-grid">
@@ -36,7 +51,7 @@
                                 <img src="{{ card.image.url }}" alt="{{ card.front_text }}" class="card-image">
                             {% endif %}
                         </div>
-                        {% if wordbook.user == user %}
+                        {% if is_owner %}
                             <form method="post" action="{% url 'wordcard_delete' card.pk %}" class="delete-form">
                                 {% csrf_token %}
                                 <button type="submit" class="btn-delete" onclick="return confirm('この単語カードを削除しますか?')">削除</button>
@@ -46,8 +61,42 @@
                 {% endfor %}
             </div>
         {% else %}
-            <p class="empty-message">まだ単語カードがありません。単語カードを追加しましょう！</p>
+            <p class="empty-message">
+                {% if is_owner %}
+                    まだ単語カードがありません。単語カードを追加しましょう！
+                {% else %}
+                    この単語帳にはまだ単語カードがありません。
+                {% endif %}
+            </p>
         {% endif %}
     </div>
 </div>
+
+<script>
+// 制限時間選択ボタンのJS
+document.addEventListener('DOMContentLoaded', () => {
+    const durationButtons = document.querySelectorAll('.duration-btn');
+    const quizStartLink = document.querySelector('.btn-quiz');
+    
+    let selectedDuration = 25; // デフォルト25秒
+    
+    durationButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // ハイライト切り替え
+            durationButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedDuration = parseInt(btn.dataset.duration, 10);
+        });
+    });
+    
+    // クイズ開始リンクがクリックされた時に選択した秒数をURLパラメータで渡す
+    if (quizStartLink) {
+        quizStartLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            const originalUrl = quizStartLink.getAttribute('href');
+            window.location.href = `${originalUrl}?duration=${selectedDuration}`;
+        });
+    }
+});
+</script>
 {% endblock %}

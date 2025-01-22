@@ -1,0 +1,47 @@
+{% extends 'home/base.html' %}
+
+{% block title %}クイズ結果 - TANKORE{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="quiz-result-container">
+        <div class="result-header">
+            <h1><i class="fas fa-chart-line"></i> クイズ結果</h1>
+            {% if wordbook %}
+                <p class="wordbook-name">{{ wordbook.title }}</p>
+            {% endif %}
+        </div>
+
+        <div class="score-display">
+            <div class="score-circle">
+                <div class="score-number">{{ score }}/{{ total }}</div>
+                <div class="score-percentage">{{ percentage }}%</div>
+            </div>
+        </div>
+
+        <div class="result-message">
+            {% if percentage >= 90 %}
+                <h2><i class="fas fa-trophy"></i> 素晴らしい！</h2>
+                <p>完璧な理解度です。この調子で頑張りましょう！</p>
+            {% elif percentage >= 70 %}
+                <h2><i class="fas fa-thumbs-up"></i> よくできました！</h2>
+                <p>良い理解度です。もう少し練習すれば完璧になりますね。</p>
+            {% elif percentage >= 50 %}
+                <h2><i class="fas fa-book-open"></i> もう少し頑張りましょう</h2>
+                <p>基本は理解されています。復習して理解を深めましょう。</p>
+            {% else %}
+                <h2><i class="fas fa-dumbbell"></i> 復習が必要です</h2>
+                <p>もう一度単語カードを確認して、再挑戦してみましょう。</p>
+            {% endif %}
+        </div>
+
+        <div class="result-actions">
+            {% if wordbook %}
+                <a href="{% url 'quiz_start' wordbook.pk %}" class="btn btn-primary">もう一度挑戦</a>
+                <a href="{% url 'wordbook_detail' wordbook.pk %}" class="btn btn-secondary">単語帳に戻る</a>
+            {% endif %}
+            <a href="{% url 'home' %}" class="btn btn-outline">単語帳一覧へ</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,6 +1,21 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+# ユーザープロフィールモデル
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    display_name = models.CharField(max_length=100, blank=True, verbose_name='表示名')
+    bio = models.TextField(blank=True, verbose_name='自己紹介')
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True, verbose_name='アバター')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.user.username}のプロフィール"
+    
+    def get_display_name(self):
+        return self.display_name if self.display_name else self.user.username
+
 # 単語帳モデル
 class WordBook(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='wordbooks')

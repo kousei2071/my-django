@@ -1,18 +1,47 @@
 {% extends 'home/base.html' %}
 
-{% block title %}マイページ - TANKORE{% endblock %}
+{% block title %}ホーム - TANKORE{% endblock %}
 
 {% block content %}
 <div class="container">
-    <!-- 自分の単語帳セクション -->
+    {% if user.is_authenticated and my_wordbooks %}
+        <!-- ログインユーザーの単語帳セクション -->
+        <section class="wordbook-section">
+            <div class="section-header">
+                <h2>あなたの単語帳</h2>
+                <a href="{% url 'wordbook_create' %}" class="btn btn-primary">+ 新しい単語帳を作成</a>
+            </div>
+            
+            <div class="wordbook-grid">
+                {% for wordbook in my_wordbooks %}
+                    <a href="{% url 'wordbook_detail' wordbook.pk %}" class="wordbook-card">
+                        <div class="wordbook-image">
+                            <div class="image-placeholder">画像</div>
+                        </div>
+                        <div class="wordbook-info">
+                            <h3>{{ wordbook.title }}</h3>
+                            <p class="card-count">{{ wordbook.card_count }}枚</p>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+    <!-- 全ての単語帳セクション -->
     <section class="wordbook-section">
         <div class="section-header">
-            <h2>自分の単語帳</h2>
-            <a href="{% url 'wordbook_create' %}" class="btn btn-primary">+ 新しい単語帳を作成</a>
+            <h2>{% if user.is_authenticated %}みんなの単語帳{% else %}単語帳一覧{% endif %}</h2>
+            {% if not user.is_authenticated %}
+                <div style="display: flex; gap: 1rem;">
+                    <a href="{% url 'login' %}" class="btn btn-secondary">ログイン</a>
+                    <a href="{% url 'register' %}" class="btn btn-primary">会員登録して単語帳を作成</a>
+                </div>
+            {% endif %}
         </div>
         
         <div class="wordbook-grid">
-            {% for wordbook in my_wordbooks %}
+            {% for wordbook in all_wordbooks %}
                 <a href="{% url 'wordbook_detail' wordbook.pk %}" class="wordbook-card">
                     <div class="wordbook-image">
                         <div class="image-placeholder">画像</div>
@@ -20,50 +49,18 @@
                     <div class="wordbook-info">
                         <h3>{{ wordbook.title }}</h3>
                         <p class="card-count">{{ wordbook.card_count }}枚</p>
+                        <p class="creator">作成者: {{ wordbook.user.username }}</p>
                     </div>
                 </a>
             {% empty %}
-                <p class="empty-message">まだ単語帳がありません。新しい単語帳を作成しましょう！</p>
-            {% endfor %}
-        </div>
-    </section>
-
-    <!-- 人気の単語帳セクション -->
-    <section class="wordbook-section">
-        <h2 class="section-title">人気の単語帳</h2>
-        <div class="wordbook-grid">
-            {% for wordbook in popular_wordbooks %}
-                <a href="{% url 'wordbook_detail' wordbook.pk %}" class="wordbook-card">
-                    <div class="wordbook-image">
-                        <div class="image-placeholder">画像</div>
-                    </div>
-                    <div class="wordbook-info">
-                        <h3>{{ wordbook.title }}</h3>
-                        <p class="card-count">{{ wordbook.card_count }}枚</p>
-                    </div>
-                </a>
-            {% empty %}
-                <p class="empty-message">まだ単語帳がありません</p>
-            {% endfor %}
-        </div>
-    </section>
-
-    <!-- 既存の単語帳セクション -->
-    <section class="wordbook-section">
-        <h2 class="section-title">既存の単語帳</h2>
-        <div class="wordbook-grid">
-            {% for wordbook in existing_wordbooks %}
-                <a href="{% url 'wordbook_detail' wordbook.pk %}" class="wordbook-card">
-                    <div class="wordbook-image">
-                        <div class="image-placeholder">画像</div>
-                    </div>
-                    <div class="wordbook-info">
-                        <h3>{{ wordbook.title }}</h3>
-                        <p class="card-count">{{ wordbook.card_count }}枚</p>
-                    </div>
-                </a>
-            {% empty %}
-                <p class="empty-message">まだ単語帳がありません</p>
+                <div class="empty-message">
+                    <p>まだ単語帳がありません</p>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'wordbook_create' %}" class="btn btn-primary">最初の単語帳を作成する</a>
+                    {% else %}
+                        <a href="{% url 'register' %}" class="btn btn-primary">会員登録して単語帳を作成する</a>
+                    {% endif %}
+                </div>
             {% endfor %}
         </div>
     </section>

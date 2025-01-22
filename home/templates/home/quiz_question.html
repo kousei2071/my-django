@@ -1,0 +1,323 @@
+{% extends 'home/base.html' %}
+
+{% block title %}クイズ - TANKORE{% endblock %}
+
+{% block content %}
+<div class="quiz-screen">
+    <div class="quiz-content">
+        <!-- 左上：円形タイマー（制限なしの場合は非表示） -->
+        <div class="quiz-timer-circle" id="timer-display" {% if quiz_duration == 0 %}style="display: none;"{% endif %}>
+            <svg width="80" height="80" class="timer-svg">
+                <circle cx="40" cy="40" r="35" 
+                        fill="#FFB5C0" 
+                        stroke="none" 
+                        id="timer-circle">
+                </circle>
+            </svg>
+            <!-- カウントダウン数字表示（残り3秒から） -->
+            <div class="timer-countdown" id="timer-countdown" style="display: none;"></div>
+        </div>
+
+        <!-- 右上：問題数 -->
+        <div class="quiz-counter">
+            {{ current_number }}/{{ total_questions }}
+        </div>
+
+        <!-- 中央：問題の英単語 -->
+        <div class="quiz-word">
+            {{ question_card.front_text }}
+        </div>
+
+        <!-- 選択肢ボタン（2x2グリッド） -->
+        <div class="quiz-options">
+            {% for choice in choices %}
+                <button class="quiz-option-btn quiz-option-{{ forloop.counter }}" 
+                        data-choice-id="{{ choice.id }}" 
+                        data-choice-text="{{ choice.back_text }}"
+                        data-is-correct="{% if choice.id == correct_answer_id %}true{% else %}false{% endif %}">
+                    {{ choice.back_text }}
+                </button>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 結果表示オーバーレイ -->
+    <div id="result-overlay" class="result-overlay" style="display: none;">
+        <div class="result-message">
+            <div id="result-icon" class="result-icon"></div>
+            <div id="result-text" class="result-text"></div>
+            <div id="result-time" class="result-time" style="display: none;"></div>
+            <div id="result-correct-answer" class="result-correct-answer" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- 紙吹雪キャンバス -->
+    <canvas id="confetti-canvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; display: none;"></canvas>
+
+    <!-- 隠しフォーム -->
+    <form method="post" action="{% url 'quiz_answer' %}" id="quiz-form" style="display: none;">
+        {% csrf_token %}
+        <input type="hidden" name="correct_answer" value="{{ correct_answer_id }}">
+        <input type="hidden" name="answer" id="selected-answer">
+        <input type="hidden" name="correct_answer_text" id="correct-answer-text">
+    </form>
+</div>
+
+<script>
+// 前回の結果があれば表示
+{% if last_result %}
+window.addEventListener('DOMContentLoaded', () => {
+    const lastResult = {{ last_result_json|safe }};
+    if (lastResult) {
+        showPreviousResult(lastResult);
+    }
+});
+{% endif %}
+
+const quizDuration = {{ quiz_duration }};  // サーバーから制限時間を取得
+let timeLeft = quizDuration;
+let timerInterval;
+let isAnswered = false;
+
+const timerCircle = document.getElementById('timer-circle');
+const timerCountdown = document.getElementById('timer-countdown');
+const optionButtons = document.querySelectorAll('.quiz-option-btn');
+const form = document.getElementById('quiz-form');
+const selectedAnswerInput = document.getElementById('selected-answer');
+const resultOverlay = document.getElementById('result-overlay');
+const resultIcon = document.getElementById('result-icon');
+const resultText = document.getElementById('result-text');
+const resultTime = document.getElementById('result-time');
+const resultCorrectAnswer = document.getElementById('result-correct-answer');
+const confettiCanvas = document.getElementById('confetti-canvas');
+
+// 初期の円のサイズ
+const initialRadius = 35;
+
+// 紙吹雪アニメーション
+function createConfetti() {
+    confettiCanvas.style.display = 'block';
+    const ctx = confettiCanvas.getContext('2d');
+    confettiCanvas.width = window.innerWidth;
+    confettiCanvas.height = window.innerHeight;
+    
+    const confetti = [];
+    const confettiCount = 150;
+    const colors = ['#FFB5C0', '#B8E0D2', '#95D5B2', '#FFD700', '#FF6B7A', '#87CEEB'];
+    
+    for (let i = 0; i < confettiCount; i++) {
+        confetti.push({
+            x: Math.random() * confettiCanvas.width,
+            y: Math.random() * confettiCanvas.height - confettiCanvas.height,
+            r: Math.random() * 6 + 4,
+            d: Math.random() * confettiCount,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            tilt: Math.random() * 10 - 10,
+            tiltAngleIncremental: Math.random() * 0.07 + 0.05,
+            tiltAngle: 0
+        });
+    }
+    
+    let animationId;
+    function drawConfetti() {
+        ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+        
+        confetti.forEach((p, i) => {
+            ctx.beginPath();
+            ctx.lineWidth = p.r / 2;
+            ctx.strokeStyle = p.color;
+            ctx.moveTo(p.x + p.tilt + p.r, p.y);
+            ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r);
+            ctx.stroke();
+            
+            p.tiltAngle += p.tiltAngleIncremental;
+            p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+            p.tilt = Math.sin(p.tiltAngle) * 15;
+            
+            if (p.y > confettiCanvas.height) {
+                confetti[i] = {
+                    x: Math.random() * confettiCanvas.width,
+                    y: -20,
+                    r: p.r,
+                    d: p.d,
+                    color: p.color,
+                    tilt: p.tilt,
+                    tiltAngleIncremental: p.tiltAngleIncremental,
+                    tiltAngle: p.tiltAngle
+                };
+            }
+        });
+        
+        animationId = requestAnimationFrame(drawConfetti);
+    }
+    
+    drawConfetti();
+    
+    // 3秒後に停止
+    setTimeout(() => {
+        cancelAnimationFrame(animationId);
+        confettiCanvas.style.display = 'none';
+    }, 3000);
+}
+
+// 前回の結果を表示
+function showPreviousResult(result) {
+    const isCorrect = result.is_correct;
+    const elapsedTime = result.elapsed_time;
+    const correctAnswer = result.correct_answer;
+    const correctWord = result.correct_word;
+    
+    if (isCorrect) {
+        resultIcon.innerHTML = '<i class="fas fa-check-circle" style="color: #4CAF50;"></i>';
+        resultText.textContent = '正解！';
+        resultCorrectAnswer.style.display = 'none';
+        
+        // 紙吹雪
+        createConfetti();
+    } else {
+        resultIcon.innerHTML = '<i class="fas fa-times-circle" style="color: #f44336;"></i>';
+        resultText.textContent = '不正解';
+        resultTime.style.display = 'none';
+        resultCorrectAnswer.innerHTML = `<div style="margin-bottom: 0.5rem;">問題: <strong style="color: #1976D2;">${correctWord}</strong></div><div>正解: <strong>${correctAnswer}</strong></div>`;
+        resultCorrectAnswer.style.display = 'block';
+    }
+    
+    resultOverlay.style.display = 'flex';
+    
+    // 2秒後に非表示
+    setTimeout(() => {
+        resultOverlay.style.display = 'none';
+        startTimer();
+    }, 2000);
+}
+
+// タイマー開始
+function startTimer() {
+    // 制限なし(0)の場合はタイマーを開始しない
+    if (quizDuration === 0) {
+        return;
+    }
+    
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        
+        // 円のサイズを縮小（選択した秒数で0になる）
+        const progress = timeLeft / quizDuration;
+        const currentRadius = initialRadius * progress;
+        timerCircle.setAttribute('r', currentRadius);
+        
+        // 色の変更（割合で計算）
+        const redThreshold = Math.ceil(quizDuration * 0.2);
+        const orangeThreshold = Math.ceil(quizDuration * 0.4);
+        
+        if (timeLeft <= redThreshold) {
+            timerCircle.setAttribute('fill', '#ff4444');
+        } else if (timeLeft <= orangeThreshold) {
+            timerCircle.setAttribute('fill', '#ff9900');
+        }
+        
+        // 残り3秒以下の場合、数字を表示
+        if (timeLeft <= 3 && timeLeft > 0) {
+            timerCountdown.textContent = timeLeft;
+            timerCountdown.style.display = 'block';
+        } else {
+            timerCountdown.style.display = 'none';
+        }
+        
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            timerCountdown.style.display = 'none';
+            if (!isAnswered) {
+                showTimeUp();
+            }
+        }
+    }, 1000);
+}
+
+// 選択肢をクリック
+optionButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        if (isAnswered) return;
+        
+        isAnswered = true;
+        clearInterval(timerInterval);
+        
+        const choiceId = btn.dataset.choiceId;
+        const isCorrect = btn.dataset.isCorrect === 'true';
+        
+        selectedAnswerInput.value = choiceId;
+        
+        // 正解の選択肢テキストを取得
+        const correctBtn = Array.from(optionButtons).find(b => b.dataset.isCorrect === 'true');
+        if (correctBtn) {
+            document.getElementById('correct-answer-text').value = correctBtn.dataset.choiceText;
+        }
+        
+        // 正解・不正解の表示
+        showResult(isCorrect, btn);
+    });
+});
+
+// 結果表示
+function showResult(isCorrect, selectedBtn) {
+    // 正解のボタンを緑色に
+    let correctBtn = null;
+    optionButtons.forEach(btn => {
+        if (btn.dataset.isCorrect === 'true') {
+            btn.classList.add('correct-answer');
+            correctBtn = btn;
+        }
+    });
+    
+    // 選択されたボタンが間違いの場合は赤色に
+    if (!isCorrect) {
+        selectedBtn.classList.add('wrong-answer');
+    }
+    
+    // 正誤判定表示後1秒待機してから次の問題へ
+    setTimeout(() => {
+        form.submit();
+    }, 1000);
+}
+
+// 時間切れの場合
+function showTimeUp() {
+    isAnswered = true;
+    
+    // 正解を表示
+    optionButtons.forEach(btn => {
+        if (btn.dataset.isCorrect === 'true') {
+            btn.classList.add('correct-answer');
+            // タイムアップ時は自動的に正解扱いにしない
+            // サーバー側で間違い扱いにするためにダミーの値をセット
+            selectedAnswerInput.value = -1;
+            // 正解の選択肢テキストは表示用のみでOK（サーバーで正としない）
+            document.getElementById('correct-answer-text').value = btn.dataset.choiceText;
+        }
+    });
+    
+    // 正誤判定表示後1秒待機してから次の問題へ
+    setTimeout(() => {
+        form.submit();
+    }, 1000);
+}
+
+// タイマー開始（前回の結果がない場合のみ）
+{% if not last_result %}
+startTimer();
+{% endif %}
+
+// キーボードショートカット（1,2,3,4キー）
+document.addEventListener('keydown', (e) => {
+    if (isAnswered) return;
+    
+    const key = e.key;
+    if (key >= '1' && key <= '4') {
+        const index = parseInt(key) - 1;
+        if (optionButtons[index]) {
+            optionButtons[index].click();
+        }
+    }
+});
+</script>
+{% endblock %}
