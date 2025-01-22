@@ -7,8 +7,8 @@
 <div class="container">
     <div class="wordbook-detail-header">
         <div class="wordbook-detail-left">
-            <div class="wordbook-detail-image" style="background-color: {{ wordbook.user.profile.background_color|default:'#fffff0' }};">
-                <img src="{{ wordbook.user.profile.get_avatar_url }}" alt="{{ wordbook.user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
+            <div class="wordbook-detail-image" style="background-color: {{ wordbook.get_background_color|default:'#fffff0' }};">
+                <img src="{{ wordbook.get_avatar_url }}" alt="{{ wordbook.user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
             </div>
         </div>
         

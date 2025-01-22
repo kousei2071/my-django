@@ -50,6 +50,12 @@ class WordBook(models.Model):
     title = models.CharField(max_length=200, verbose_name='単語帳名')
     description = models.TextField(blank=True, verbose_name='説明')
     tags = models.ManyToManyField('Tag', related_name='wordbooks', blank=True)
+    
+    # AI生成用または個別設定用
+    avatar_image = models.CharField(max_length=100, blank=True, null=True)
+    background_color = models.CharField(max_length=7, blank=True, null=True)
+    is_ai_generated = models.BooleanField(default=False)
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -61,6 +67,18 @@ class WordBook(models.Model):
     
     def card_count(self):
         return self.cards.count()
+
+    def get_avatar_url(self):
+        """単語帳固有のアバター画像があればそれを返し、なければ作成者のプロファイル画像を返す"""
+        if self.avatar_image:
+            return f'/static/home/images/django icon/{self.avatar_image}'
+        return self.user.profile.get_avatar_url()
+
+    def get_background_color(self):
+        """単語帳固有の背景色があればそれを返し、なければ作成者のプロファイル背景色を返す"""
+        if self.background_color:
+            return self.background_color
+        return self.user.profile.background_color
 
 # 単語カードモデル
 class WordCard(models.Model):
