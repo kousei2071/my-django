@@ -860,8 +860,7 @@ body {
     padding-bottom: 1rem;
 }
 
-/* マイページとindexは横スクロール */
-.mypage-layout .wordbook-grid,
+/* indexは横スクロール */
 .index-layout .wordbook-grid {
     display: flex;
     gap: 1.5rem;
@@ -870,12 +869,10 @@ body {
     -ms-overflow-style: none;
 }
 
-.mypage-layout .wordbook-grid::-webkit-scrollbar,
 .index-layout .wordbook-grid::-webkit-scrollbar {
     display: none;
 }
 
-.mypage-layout .wordbook-card,
 .index-layout .wordbook-card {
     min-width: 250px;
     flex-shrink: 0;
