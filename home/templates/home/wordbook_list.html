@@ -4,73 +4,104 @@
 
 {% block content %}
 {% load static %}
-<div class="container">
-    <!-- タグから探す -->
-    <section class="tags-section">
-        <h3 class="tags-title">🏷️ タグから探す</h3>
-        <div class="tags-scroll">
-            {% for tag in popular_tags %}
-                <a href="{% url 'wordbook_list' %}?tag={{ tag.name|urlencode }}" 
-                   class="tag-chip-search {% if tag.name in selected_tag_names %}active{% endif %}">
-                    {{ tag.name }}
-                    <span class="tag-count">{{ tag.usage_count }}</span>
-                </a>
-            {% endfor %}
+<div class="index-layout">
+    <!-- 左側サイドバー（タグ検索） -->
+    <aside class="tags-sidebar">
+        <div class="tags-sidebar-sticky">
+            <div class="tags-sidebar-header">
+                {% if selected_tags or search_query %}
+                    <a href="{% url 'wordbook_list' %}" class="tags-clear-btn">クリア</a>
+                {% endif %}
+            </div>
+            
+            <div class="tags-sidebar-scroll">
+                {% if all_tags %}
+                    <div class="tags-group">
+                        <h4 class="tags-group-title">人気のタグ</h4>
+                        <div class="tags-list">
+                            {% for tag in all_tags|slice:":10" %}
+                            <a href="{% url 'wordbook_list' %}?tag={{ tag.name|urlencode }}" 
+                               class="tag-item {% if tag.name in selected_tag_names %}active{% endif %}">
+                                <span class="tag-name">{{ tag.name }}</span>
+                                <span class="tag-count">{{ tag.usage_count }}</span>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    {% if all_tags|length > 10 %}
+                    <div class="tags-group">
+                        <h4 class="tags-group-title">すべてのタグ</h4>
+                        <div class="tags-list">
+                            {% for tag in all_tags|slice:"10:" %}
+                            <a href="{% url 'wordbook_list' %}?tag={{ tag.name|urlencode }}" 
+                               class="tag-item {% if tag.name in selected_tag_names %}active{% endif %}">
+                                <span class="tag-name">{{ tag.name }}</span>
+                                <span class="tag-count">{{ tag.usage_count }}</span>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <p class="tags-empty">タグがまだありません</p>
+                {% endif %}
+            </div>
         </div>
-        {% if selected_tag_names or search_query %}
-            <a href="{% url 'wordbook_list' %}" class="btn-clear-filter">✕ フィルターをクリア</a>
+    </aside>
+
+    <!-- メインコンテンツ -->
+    <div class="index-main">
+        <!-- 検索結果の表示 -->
+        {% if is_filtered %}
+            <div class="filter-result-info">
+                <p>
+                    {% if search_query %}「{{ search_query }}」{% endif %}
+                    {% if selected_tags %}{% if search_query %}・{% endif %}「{% for tag in selected_tags %}{{ tag.name }}{% if not forloop.last %}、{% endif %}{% endfor %}」{% endif %}
+                    で{{ popular_wordbooks.count|add:ai_wordbooks.count }}件の単語帳が見つかりました
+                </p>
+            </div>
         {% endif %}
-    </section>
 
-    <!-- 検索結果の表示 -->
-    {% if is_filtered %}
-        <div class="filter-result-info">
-            <p>
-                {% if search_query %}「{{ search_query }}」{% endif %}
-                {% if selected_tags %}{% if search_query %}・{% endif %}「{% for tag in selected_tags %}{{ tag.name }}{% if not forloop.last %}、{% endif %}{% endfor %}」{% endif %}
-                で{{ popular_wordbooks.count|add:ai_wordbooks.count }}件の単語帳が見つかりました
-            </p>
-        </div>
-    {% endif %}
+        <!-- 人気の単語帳セクション -->
+        <section class="wordbook-section">
+            <h2 class="section-title">人気の単語帳</h2>
+            <div class="wordbook-grid">
+                {% for wordbook in popular_wordbooks %}
+                    <a href="{% url 'wordbook_detail' wordbook.pk %}" class="wordbook-card">
+                        <div class="wordbook-image" style="background-color: {{ wordbook.get_background_color|default:'#fffff0' }};">
+                            <img src="{{ wordbook.get_avatar_url }}" alt="{{ wordbook.user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        <div class="wordbook-info">
+                            <h3>{{ wordbook.title }}</h3>
+                            <p class="card-count">{{ wordbook.card_count }}枚・<img src="{% static 'home/images/like-3d.png' %}" alt="いいね" class="like-icon"> {{ wordbook.like_count|default:0 }}</p>
+                        </div>
+                    </a>
+                {% empty %}
+                    <p class="empty-message">まだ単語帳がありません</p>
+                {% endfor %}
+            </div>
+        </section>
 
-    <!-- 人気の単語帳セクション -->
-    <section class="wordbook-section">
-        <h2 class="section-title">人気の単語帳</h2>
-        <div class="wordbook-grid">
-            {% for wordbook in popular_wordbooks %}
-                <a href="{% url 'wordbook_detail' wordbook.pk %}" class="wordbook-card">
-                    <div class="wordbook-image" style="background-color: {{ wordbook.get_background_color|default:'#fffff0' }};">
-                        <img src="{{ wordbook.get_avatar_url }}" alt="{{ wordbook.user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
-                    </div>
-                    <div class="wordbook-info">
-                        <h3>{{ wordbook.title }}</h3>
-                        <p class="card-count">{{ wordbook.card_count }}枚・<img src="{% static 'home/images/like-3d.png' %}" alt="いいね" class="like-icon"> {{ wordbook.like_count|default:0 }}</p>
-                    </div>
-                </a>
-            {% empty %}
-                <p class="empty-message">まだ単語帳がありません</p>
-            {% endfor %}
-        </div>
-    </section>
-
-    <!-- AIの単語帳セクション -->
-    <section class="wordbook-section" style="margin-bottom: 250px;">
-        <h2 class="section-title">AIの単語帳</h2>
-        <div class="wordbook-grid">
-            {% for wordbook in ai_wordbooks %}
-                <a href="{% url 'wordbook_detail' wordbook.pk %}" class="wordbook-card">
-                    <div class="wordbook-image" style="background-color: {{ wordbook.get_background_color|default:'#fffff0' }};">
-                        <img src="{{ wordbook.get_avatar_url }}" alt="{{ wordbook.user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
-                    </div>
-                    <div class="wordbook-info">
-                        <h3>{{ wordbook.title }}</h3>
-                        <p class="card-count">{{ wordbook.card_count }}枚・<img src="{% static 'home/images/like-3d.png' %}" alt="いいね" class="like-icon"> {{ wordbook.like_count|default:0 }}</p>
-                    </div>
-                </a>
-            {% empty %}
-                <p class="empty-message">まだ単語帳がありません</p>
-            {% endfor %}
-        </div>
-    </section>
+        <!-- AIの単語帳セクション -->
+        <section class="wordbook-section" style="margin-bottom: 250px;">
+            <h2 class="section-title">AIの単語帳</h2>
+            <div class="wordbook-grid">
+                {% for wordbook in ai_wordbooks %}
+                    <a href="{% url 'wordbook_detail' wordbook.pk %}" class="wordbook-card">
+                        <div class="wordbook-image" style="background-color: {{ wordbook.get_background_color|default:'#fffff0' }};">
+                            <img src="{{ wordbook.get_avatar_url }}" alt="{{ wordbook.user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        <div class="wordbook-info">
+                            <h3>{{ wordbook.title }}</h3>
+                            <p class="card-count">{{ wordbook.card_count }}枚・<img src="{% static 'home/images/like-3d.png' %}" alt="いいね" class="like-icon"> {{ wordbook.like_count|default:0 }}</p>
+                        </div>
+                    </a>
+                {% empty %}
+                    <p class="empty-message">まだ単語帳がありません</p>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
 </div>
 {% endblock %}
