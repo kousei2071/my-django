@@ -942,6 +942,24 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    line-height: 1.2;
+    max-width: 100%;
+    padding: 0 2rem;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+/* 文字数に応じた自動サイズ調整 */
+.quiz-question[data-length="medium"] {
+    font-size: 70px;
+}
+
+.quiz-question[data-length="long"] {
+    font-size: 55px;
+}
+
+.quiz-question[data-length="extra-long"] {
+    font-size: 45px;
 }
 
 .quiz-options {
@@ -966,6 +984,27 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    line-height: 1.3;
+    text-align: center;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
+}
+
+/* ボタンの文字数に応じた自動サイズ調整 */
+.quiz-option[data-length="medium"] {
+    font-size: 1.6rem;
+    padding: 2.4rem 1.8rem;
+}
+
+.quiz-option[data-length="long"] {
+    font-size: 1.3rem;
+    padding: 2rem 1.5rem;
+}
+
+.quiz-option[data-length="extra-long"] {
+    font-size: 1.1rem;
+    padding: 1.8rem 1.3rem;
 }
 
 .quiz-option:hover {

@@ -242,6 +242,176 @@ class Command(BaseCommand):
                     ('Best regards', '敬具、よろしくお願いいたします'),
                 ]
             },
+            {
+                'title': 'AI・機械学習 英単語',
+                'description': '人工知能や機械学習分野で頻出する英単語集。AI技術を学ぶ方に必須の用語を収録しています。',
+                'tags': ['IT用語', '上級', '単語'],
+                'cards': [
+                    ('artificial intelligence', '人工知能'),
+                    ('machine learning', '機械学習'),
+                    ('neural network', 'ニューラルネットワーク、神経回路網'),
+                    ('deep learning', 'ディープラーニング、深層学習'),
+                    ('dataset', 'データセット'),
+                    ('model', 'モデル、模型'),
+                    ('training', '訓練、学習'),
+                    ('accuracy', '精度、正確度'),
+                    ('prediction', '予測'),
+                    ('algorithm', 'アルゴリズム'),
+                ]
+            },
+            {
+                'title': '医療英語 基本単語',
+                'description': '医療現場で使われる基本的な英単語集。医療従事者や医学部生におすすめです。',
+                'tags': ['医療英語', '中級', '単語'],
+                'cards': [
+                    ('symptom', '症状'),
+                    ('diagnosis', '診断'),
+                    ('treatment', '治療、処置'),
+                    ('prescription', '処方箋'),
+                    ('medication', '薬、投薬'),
+                    ('surgery', '手術'),
+                    ('patient', '患者'),
+                    ('physician', '医師'),
+                    ('nurse', '看護師'),
+                    ('examination', '検査、診察'),
+                ]
+            },
+            {
+                'title': '英検3級 基礎単語',
+                'description': '英検3級合格に必要な基礎単語集。中学卒業レベルの語彙力を身につけることができます。',
+                'tags': ['英検3級', '基礎', '単語'],
+                'cards': [
+                    ('answer', '答える、答え'),
+                    ('ask', '尋ねる、頼む'),
+                    ('become', 'になる'),
+                    ('begin', '始まる、始める'),
+                    ('believe', '信じる、思う'),
+                    ('between', 'の間に'),
+                    ('both', '両方の'),
+                    ('bring', '持ってくる'),
+                    ('build', '建てる、作る'),
+                    ('business', '仕事、商売、企業'),
+                ]
+            },
+            {
+                'title': 'TOEIC900点レベル 上級単語',
+                'description': 'TOEIC900点以上を目指すための高度な単語集。ビジネス上級レベルの語彙力を養えます。',
+                'tags': ['TOEIC900', '上級', 'ビジネス英語'],
+                'cards': [
+                    ('comprehensive', '包括的な、総合的な'),
+                    ('crucial', '重要な、決定的な'),
+                    ('demonstrate', '実証する、示す'),
+                    ('deteriorate', '悪化する'),
+                    ('efficient', '効率的な'),
+                    ('emphasize', '強調する'),
+                    ('facilitate', '容易にする、促進する'),
+                    ('implement', '実施する、実行する'),
+                    ('initiative', 'イニシアチブ、主導権'),
+                    ('innovative', '革新的な'),
+                ]
+            },
+            {
+                'title': '高校受験 頻出英単語',
+                'description': '高校受験に頻出する重要英単語集。公立・私立高校入試に対応した内容です。',
+                'tags': ['高校受験', '中学英語', '単語'],
+                'cards': [
+                    ('almost', 'ほとんど、もう少しで'),
+                    ('already', 'すでに、もう'),
+                    ('although', 'だけれども'),
+                    ('among', 'の中で（3つ以上）'),
+                    ('another', '別の、もう一つの'),
+                    ('anymore', 'もはや～ない'),
+                    ('appear', '現れる、～のようだ'),
+                    ('arrive', '到着する'),
+                    ('became', 'becomeの過去形'),
+                    ('carefully', '注意深く'),
+                ]
+            },
+            {
+                'title': 'データサイエンス 英単語',
+                'description': 'データサイエンス分野で使われる英単語集。統計学やデータ分析を学ぶ方におすすめです。',
+                'tags': ['IT用語', '中級', '単語'],
+                'cards': [
+                    ('analysis', '分析'),
+                    ('correlation', '相関、相関関係'),
+                    ('distribution', '分布、分配'),
+                    ('hypothesis', '仮説'),
+                    ('inference', '推論、推測'),
+                    ('outlier', '外れ値'),
+                    ('regression', '回帰'),
+                    ('sample', 'サンプル、標本'),
+                    ('statistics', '統計学、統計'),
+                    ('variable', '変数'),
+                ]
+            },
+            {
+                'title': '英語イディオム 日常編',
+                'description': '日常会話でよく使われる英語のイディオム（慣用句）集。ネイティブらしい表現を学べます。',
+                'tags': ['日常会話', '熟語', '中級'],
+                'cards': [
+                    ('break the ice', '打ち解ける、緊張をほぐす'),
+                    ('piece of cake', '朝飯前、簡単なこと'),
+                    ('hit the books', '勉強する'),
+                    ('under the weather', '体調が悪い'),
+                    ('cost an arm and a leg', '非常に高価である'),
+                    ('once in a blue moon', 'めったに～ない'),
+                    ('spill the beans', '秘密を漏らす'),
+                    ('break a leg', '頑張って（幸運を）'),
+                    ('on cloud nine', '大喜びで'),
+                    ('call it a day', '今日はこれで終わりにする'),
+                ]
+            },
+            {
+                'title': '環境・SDGs関連 英単語',
+                'description': '環境問題やSDGsに関する英単語集。グローバルな課題について学べます。',
+                'tags': ['上級', '単語'],
+                'cards': [
+                    ('sustainable', '持続可能な'),
+                    ('renewable', '再生可能な'),
+                    ('climate change', '気候変動'),
+                    ('global warming', '地球温暖化'),
+                    ('carbon footprint', '二酸化炭素排出量'),
+                    ('biodiversity', '生物多様性'),
+                    ('ecosystem', '生態系'),
+                    ('pollution', '汚染'),
+                    ('conservation', '保全、保護'),
+                    ('recycling', 'リサイクル、再利用'),
+                ]
+            },
+            {
+                'title': '大学受験 難関大学レベル',
+                'description': '難関大学入試に対応した高度な英単語集。東大・京大レベルの語彙力を目指す方向けです。',
+                'tags': ['大学受験', '上級', '単語'],
+                'cards': [
+                    ('accelerate', '加速する'),
+                    ('contemplate', '熟考する'),
+                    ('deteriorate', '悪化する'),
+                    ('distinguish', '区別する、識別する'),
+                    ('eliminate', '取り除く、排除する'),
+                    ('fluctuate', '変動する'),
+                    ('inherent', '固有の、生来の'),
+                    ('manifest', '明らかにする、表す'),
+                    ('predominant', '支配的な、主要な'),
+                    ('substantial', '相当な、実質的な'),
+                ]
+            },
+            {
+                'title': 'ビジネス会議 英語表現',
+                'description': 'ビジネス会議で使える英語表現集。プレゼンや議論で役立つフレーズを収録しています。',
+                'tags': ['ビジネス英語', '中級', '文法'],
+                'cards': [
+                    ("Let's get started", '始めましょう'),
+                    ('According to the data', 'データによれば'),
+                    ('In my opinion', '私の意見では'),
+                    ('Could you elaborate on that?', 'それについて詳しく説明していただけますか？'),
+                    ('That makes sense', 'それは理にかなっています'),
+                    ('What are your thoughts?', 'あなたのお考えは？'),
+                    ("Let's move on to the next topic", '次の議題に移りましょう'),
+                    ('Can we circle back to that later?', 'それは後で戻ってきましょうか？'),
+                    ("I'd like to add something", '何か付け加えたいことがあります'),
+                    ("Let's wrap up", 'まとめましょう'),
+                ]
+            },
         ]
 
         # 単語帳とカードを作成
