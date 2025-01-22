@@ -3,6 +3,8 @@
 {% block title %}{{ wordbook.title }} - TANKORE{% endblock %}
 
 {% block content %}
+{% load static %}
+{% with like_emoji_url=static|add:'home/images/like-emoji.png' like_3d_url=static|add:'home/images/like-3d.png' %}
 <div class="container">
     <div class="wordbook-detail-header">
         <div class="wordbook-detail-left">
@@ -19,7 +21,7 @@
                     {% csrf_token %}
                      <input type="hidden" name="next" value="{{ request.get_full_path }}">
                      <button type="submit" class="btn btn-secondary {% if user_has_liked %}is-liked{% endif %}">
-                      ❤️ {{ likes_count }} {% if user_has_liked %}取り消す{% else %}いいね{% endif %}
+                      <img src="{% static 'home/images/like-3d.png' %}" alt="いいね" class="like-icon"> {{ likes_count }} {% if user_has_liked %}取り消す{% else %}いいね{% endif %}
                     </button>
                  </form>
               {% else %}
@@ -63,4 +65,5 @@
         {% endif %}
     </div>
 </div>
+{% endwith %}
 {% endblock %}
