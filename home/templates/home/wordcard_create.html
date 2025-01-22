@@ -1,0 +1,35 @@
+{% extends 'home/base.html' %}
+
+{% block title %}単語カードを追加 - TANKORE{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="form-container">
+        <h1>{{ wordbook.title }} に単語カードを追加</h1>
+        
+        <form method="post" enctype="multipart/form-data" class="create-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="front_text">英単語</label>
+                <input type="text" name="front_text" id="front_text" class="form-input" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="back_text">意味</label>
+                <textarea name="back_text" id="back_text" class="form-textarea" rows="3" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="image">画像（任意）</label>
+                <input type="file" name="image" id="image" class="form-input" accept="image/*">
+            </div>
+            
+            <div class="form-actions">
+                <a href="{% url 'wordbook_detail' wordbook.pk %}" class="btn btn-secondary">キャンセル</a>
+                <button type="submit" class="btn btn-primary">追加する</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

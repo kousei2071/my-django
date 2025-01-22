@@ -1,0 +1,53 @@
+{% extends 'home/base.html' %}
+
+{% block title %}{{ wordbook.title }} - TANKORE{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="wordbook-detail-header">
+        <div class="wordbook-detail-left">
+            <div class="wordbook-detail-image">
+                <div class="image-placeholder-large">画像</div>
+            </div>
+        </div>
+        
+        <div class="wordbook-detail-right">
+            <h1 class="wordbook-detail-title">{{ wordbook.title }}</h1>
+            {% if wordbook.user == user %}
+                <a href="{% url 'wordcard_create' wordbook.pk %}" class="btn btn-primary">+ 単語カードを追加</a>
+                <a href="{% url 'wordbook_list' %}" class="btn btn-secondary">単語帳一覧に戻る</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="wordcard-list">
+        <h2>単語カード一覧 ({{ cards.count }}枚)</h2>
+        
+        {% if cards %}
+            <div class="wordcard-grid">
+                {% for card in cards %}
+                    <div class="wordcard">
+                        <div class="wordcard-front">
+                            <p class="word-text">{{ card.front_text }}</p>
+                        </div>
+                        <div class="wordcard-back">
+                            <p class="meaning-text">{{ card.back_text }}</p>
+                            {% if card.image %}
+                                <img src="{{ card.image.url }}" alt="{{ card.front_text }}" class="card-image">
+                            {% endif %}
+                        </div>
+                        {% if wordbook.user == user %}
+                            <form method="post" action="{% url 'wordcard_delete' card.pk %}" class="delete-form">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-delete" onclick="return confirm('この単語カードを削除しますか?')">削除</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="empty-message">まだ単語カードがありません。単語カードを追加しましょう！</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
