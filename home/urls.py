@@ -9,6 +9,7 @@ urlpatterns = [
     # Avatar APIs
     path('api/avatars/', views.get_available_avatars, name='get_avatars'),
     path('api/avatar/update/', views.update_avatar, name='update_avatar'),
+    path('api/avatar/upload/', views.upload_custom_avatar, name='upload_custom_avatar'),
     path('api/backgrounds/', views.get_available_backgrounds, name='get_backgrounds'),
     path('api/background/update/', views.update_background, name='update_background'),
     # Tag APIs

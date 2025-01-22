@@ -9,7 +9,7 @@
         <aside class="account-panel">
             <div class="account-card">
                 <div class="account-avatar avatar-clickable" id="avatarImage" title="クリックして画像を変更" style="background-color: {{ background_color|default:'#fffff0' }};">
-                    <img src="{% static 'home/images/django icon/' %}{{ avatar_image }}" alt="avatar" style="width: 100%; height: 100%; border-radius: 16px; object-fit: cover;">
+                    <img id="avatarImageTag" src="{{ request.user.profile.get_avatar_url }}" alt="avatar" style="width: 100%; height: 100%; border-radius: 16px; object-fit: cover;">
                 </div>
                 <div class="account-meta">
                     <p class="account-name">{{ nickname }}</p>
@@ -33,6 +33,15 @@
                     <button type="button" class="modal-close" id="closeAvatarModal">&times;</button>
                 </div>
                 <div class="modal-body">
+                    <h3 class="avatar-modal-subtitle">カスタムアイコンをアップロード</h3>
+                    <div style="margin-bottom: 1.5rem;">
+                        <label for="customAvatarInput" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem;">画像ファイルを選択 (JPG, PNG, GIF, WebP - 最大5MB)</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="file" id="customAvatarInput" accept="image/*" style="flex: 1; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;">
+                            <button id="uploadAvatarBtn" class="btn btn-primary" style="padding: 0.5rem 1rem;">アップロード</button>
+                        </div>
+                        <p id="uploadStatus" style="margin-top: 0.5rem; font-size: 0.85rem; color: #666;"></p>
+                    </div>
                     <h3 class="avatar-modal-subtitle">アイコンを選択</h3>
                     <div class="avatar-grid" id="avatarGrid">
                         <!-- JavaScriptで動的に生成 -->
@@ -41,6 +50,10 @@
                     <div class="color-grid" id="backgroundGrid">
                         <!-- JavaScriptで動的に生成 -->
                     </div>
+                </div>
+                <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 0.5rem; padding: 1rem; border-top: 1px solid #e0e0e0;">
+                    <button type="button" class="btn btn-secondary" id="closeAvatarModalBtn">キャンセル</button>
+                    <button type="button" class="btn btn-primary" id="confirmAvatarBtn">決定</button>
                 </div>
             </div>
         </div>
@@ -61,7 +74,7 @@
                     {% for wordbook in my_wordbooks %}
                         <a href="{% url 'wordbook_detail' wordbook.pk %}?from=mypage" class="wordbook-card">
                             <div class="wordbook-image" style="background-color: {{ wordbook.user.profile.background_color|default:'#fffff0' }};">
-                                <img src="{% static 'home/images/django icon/' %}{{ wordbook.user.profile.avatar_image|default:'account.png' }}" alt="{{ wordbook.user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                <img src="{{ wordbook.user.profile.get_avatar_url }}" alt="{{ wordbook.user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
                             </div>
                             <div class="wordbook-info">
                                 <h3>{{ wordbook.title }}</h3>
@@ -85,7 +98,7 @@
                     {% for wordbook in saved_wordbooks %}
                         <a href="{% url 'wordbook_detail' wordbook.pk %}" class="wordbook-card">
                             <div class="wordbook-image" style="background-color: {{ wordbook.user.profile.background_color|default:'#fffff0' }};">
-                                <img src="{% static 'home/images/django icon/' %}{{ wordbook.user.profile.avatar_image|default:'account.png' }}" alt="{{ wordbook.user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                <img src="{{ wordbook.user.profile.get_avatar_url }}" alt="{{ wordbook.user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
                             </div>
                             <div class="wordbook-info">
                                 <h3>{{ wordbook.title }}</h3>
@@ -163,6 +176,16 @@ document.addEventListener('DOMContentLoaded', function() {
         avatarModal.style.display = 'none';
     });
 
+    // キャンセルボタン
+    document.getElementById('closeAvatarModalBtn').addEventListener('click', function() {
+        avatarModal.style.display = 'none';
+    });
+
+    // 決定ボタン
+    document.getElementById('confirmAvatarBtn').addEventListener('click', function() {
+        location.reload();
+    });
+
     // モーダルの外側をクリックして閉じる
     avatarModal.addEventListener('click', function(e) {
         if (e.target === avatarModal) {
@@ -187,7 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.ok) {
                 // 画像を更新
                 const img = avatarImage.querySelector('img');
-                img.src = `{% static 'home/images/django icon/' %}${avatarName}`;
+                img.src = data.avatar_url || `{% static 'home/images/django icon/' %}${avatarName}`;
                 selectedAvatar = avatarName;
                 // 選択状態のハイライト更新
                 avatarGrid.querySelectorAll('.avatar-item').forEach(el => {
@@ -229,6 +252,55 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('背景色の更新に失敗しました');
         }
     }
+
+    // カスタムアバターアップロード
+    const uploadAvatarBtn = document.getElementById('uploadAvatarBtn');
+    const customAvatarInput = document.getElementById('customAvatarInput');
+    const uploadStatus = document.getElementById('uploadStatus');
+
+    uploadAvatarBtn.addEventListener('click', async function() {
+        const file = customAvatarInput.files[0];
+        if (!file) {
+            uploadStatus.textContent = 'ファイルを選択してください';
+            uploadStatus.style.color = '#e74c3c';
+            return;
+        }
+
+        uploadStatus.textContent = 'アップロード中...';
+        uploadStatus.style.color = '#3498db';
+
+        const formData = new FormData();
+        formData.append('avatar_file', file);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        try {
+            const response = await fetch('{% url "upload_custom_avatar" %}', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const data = await response.json();
+
+            if (data.ok) {
+                uploadStatus.textContent = 'アップロード完了！';
+                uploadStatus.style.color = '#27ae60';
+                const imgTag = document.getElementById('avatarImageTag');
+                imgTag.src = data.avatar_url;
+                customAvatarInput.value = '';
+                // ページをリロード
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                uploadStatus.textContent = data.error?.message || 'アップロードに失敗しました';
+                uploadStatus.style.color = '#e74c3c';
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            uploadStatus.textContent = 'アップロードに失敗しました';
+            uploadStatus.style.color = '#e74c3c';
+        }
+    });
 });
 </script>
 {% endblock %}

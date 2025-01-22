@@ -40,7 +40,7 @@
             {% for wordbook in popular_wordbooks %}
                 <a href="{% url 'wordbook_detail' wordbook.pk %}" class="wordbook-card">
                     <div class="wordbook-image" style="background-color: {{ wordbook.user.profile.background_color|default:'#fffff0' }};">
-                        <img src="{% static 'home/images/django icon/' %}{{ wordbook.user.profile.avatar_image|default:'account.png' }}" alt="{{ wordbook.user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        <img src="{{ wordbook.user.profile.get_avatar_url }}" alt="{{ wordbook.user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
                     <div class="wordbook-info">
                         <h3>{{ wordbook.title }}</h3>
@@ -60,7 +60,7 @@
             {% for wordbook in existing_wordbooks %}
                 <a href="{% url 'wordbook_detail' wordbook.pk %}" class="wordbook-card">
                     <div class="wordbook-image" style="background-color: {{ wordbook.user.profile.background_color|default:'#fffff0' }};">
-                        <img src="{% static 'home/images/django icon/' %}{{ wordbook.user.profile.avatar_image|default:'account.png' }}" alt="{{ wordbook.user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        <img src="{{ wordbook.user.profile.get_avatar_url }}" alt="{{ wordbook.user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
                     <div class="wordbook-info">
                         <h3>{{ wordbook.title }}</h3>
