@@ -6,9 +6,15 @@
 {% block content %}
 <div class="follow-list-container">
     <div class="follow-list-header">
+        {% if from_mypage %}
+        <a href="{% url 'mypage' %}" class="back-btn">
+            <i class="fas fa-arrow-left"></i> マイページに戻る
+        </a>
+        {% else %}
         <a href="{% url 'user_profile' profile_user.username %}" class="back-btn">
             <i class="fas fa-arrow-left"></i> プロフィールに戻る
         </a>
+        {% endif %}
         <h1>{{ profile_user.username }}のフォロー中</h1>
     </div>
     

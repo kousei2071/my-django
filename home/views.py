@@ -75,6 +75,10 @@ def mypage(request):
     # ユーザープロファイルを取得または作成
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
     
+    # フォロワー数とフォロー中の数を取得
+    followers_count = UserFollow.objects.filter(following=request.user).count()
+    following_count = UserFollow.objects.filter(follower=request.user).count()
+    
     context = {
         'my_wordbooks': my_wordbooks_preview,
         'my_wordbooks_count': my_wordbooks_count,
@@ -85,6 +89,8 @@ def mypage(request):
         'starred_cards_count': starred_cards_count,
         'avatar_image': user_profile.avatar_image,
         'background_color': user_profile.background_color,
+        'followers_count': followers_count,
+        'following_count': following_count,
     }
     return render(request, 'home/mypage.html', context)
 
@@ -849,11 +855,15 @@ def user_following_list(request, username):
             follower=request.user
         ).values_list('following_id', flat=True))
     
+    # マイページから来たかどうかを判定
+    from_mypage = request.GET.get('from') == 'mypage'
+    
     context = {
         'profile_user': profile_user,
         'following_relations': following_relations,
         'current_user_following_ids': current_user_following_ids,
         'is_own_profile': request.user == profile_user,
+        'from_mypage': from_mypage,
     }
     
     return render(request, 'home/user_following_list.html', context)
@@ -876,11 +886,15 @@ def user_followers_list(request, username):
             follower=request.user
         ).values_list('following_id', flat=True))
     
+    # マイページから来たかどうかを判定
+    from_mypage = request.GET.get('from') == 'mypage'
+    
     context = {
         'profile_user': profile_user,
         'follower_relations': follower_relations,
         'current_user_following_ids': current_user_following_ids,
         'is_own_profile': request.user == profile_user,
+        'from_mypage': from_mypage,
     }
     
     return render(request, 'home/user_followers_list.html', context)

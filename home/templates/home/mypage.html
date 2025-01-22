@@ -12,7 +12,19 @@
                     <img id="avatarImageTag" src="{{ request.user.profile.get_avatar_url }}" alt="avatar" style="width: 100%; height: 100%; border-radius: 16px; object-fit: cover;">
                 </div>
                 <div class="account-meta">
-                    <p class="account-name">{{ nickname }}</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; gap: 1.5rem;">
+                        <p class="account-name" style="margin: 0;">{{ nickname }}</p>
+                        <div style="display: flex; gap: 1rem; font-size: 0.9rem; flex-shrink: 0;">
+                            <a href="{% url 'user_followers_list' user.username %}?from=mypage" style="text-decoration: none; color: inherit; display: flex; gap: 0.25rem;">
+                                <span style="color: #666;">フォロワー</span>
+                                <strong>{{ followers_count }}</strong>
+                            </a>
+                            <a href="{% url 'user_following_list' user.username %}?from=mypage" style="text-decoration: none; color: inherit; display: flex; gap: 0.25rem;">
+                                <span style="color: #666;">フォロー中</span>
+                                <strong>{{ following_count }}</strong>
+                            </a>
+                        </div>
+                    </div>
                     <p class="account-email">@{{ user.username }}</p>
                     <p class="account-email">{{ user.email|default:"メール未設定" }}</p>
                 </div>
