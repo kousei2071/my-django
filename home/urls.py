@@ -6,6 +6,11 @@ urlpatterns = [
     path('mypage/', views.mypage, name='mypage'),
     path('mypage/wordbooks/', views.my_wordbooks_all, name='mypage_wordbooks_all'),
     path('mypage/bookmarks/', views.bookmarked_wordbooks_all, name='mypage_bookmarks_all'),
+    # Avatar APIs
+    path('api/avatars/', views.get_available_avatars, name='get_avatars'),
+    path('api/avatar/update/', views.update_avatar, name='update_avatar'),
+    path('api/backgrounds/', views.get_available_backgrounds, name='get_backgrounds'),
+    path('api/background/update/', views.update_background, name='update_background'),
     # Tag APIs
     path('tags/', views.tags_list, name='tags_list'),
     path('tags/create/', views.tag_create, name='tag_create'),
