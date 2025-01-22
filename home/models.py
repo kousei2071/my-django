@@ -13,6 +13,8 @@ class UserProfile(models.Model):
         ('account4.png', 'Account 4'),
         ('account5.png', 'Account 5'),
         ('account6.png', 'Account 6'),
+        ('account7.png', 'Account 7'),
+        ('account8.png', 'Account 8'),
     ])
     background_color = models.CharField(max_length=7, default='#fffff0')
     created_at = models.DateTimeField(auto_now_add=True)

@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'home/css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <title>{% block title %}TANKORE{% endblock %}</title>
 </head>
 <body>
@@ -29,18 +30,18 @@
             
             <nav class="nav">
                 {% if user.is_authenticated %}
-                    <a href="{% url 'mypage' %}" class="nav-link nav-icon-link" data-tooltip="マイページ">
-                        <img src="{% static 'home/images/mypage.png' %}" alt="マイページ" class="nav-icon" style="height: 2rem; width: auto; margin-top: 10px;">
+                    <a href="{% url 'mypage' %}" class="nav-link nav-icon-link" data-tooltip="マイページ" title="マイページ">
+                        <i class="fas fa-user-circle fa-2x"></i>
                     </a>
-                    <a href="{% url 'logout' %}" class="nav-link nav-icon-link" data-tooltip="ログアウト">
-                        <img src="{% static 'home/images/logout.png' %}" alt="ログアウト" class="nav-icon" style="height: 2rem; width: auto; margin-top: 10px;">
+                    <a href="{% url 'logout' %}" class="nav-link nav-icon-link" data-tooltip="ログアウト" title="ログアウト">
+                        <i class="fas fa-sign-out-alt fa-2x"></i>
                     </a>
                 {% else %}
-                    <a href="{% url 'login' %}" class="nav-link nav-icon-link" data-tooltip="ログイン">
-                        <img src="{% static 'home/images/login.png' %}" alt="ログイン" class="nav-icon" style="height: 2rem; width: auto; margin-top: 10px;">
+                    <a href="{% url 'login' %}" class="nav-link nav-icon-link" data-tooltip="ログイン" title="ログイン">
+                        <i class="fas fa-sign-in-alt fa-2x"></i>
                     </a>
-                    <a href="{% url 'register' %}" class="nav-link nav-icon-link" data-tooltip="会員登録">
-                        <img src="{% static 'home/images/touroku.png' %}" alt="会員登録" class="nav-icon" style="height: 2rem; width: auto; margin-top: 10px;">
+                    <a href="{% url 'register' %}" class="nav-link nav-icon-link" data-tooltip="会員登録" title="会員登録">
+                        <i class="fas fa-user-plus fa-2x"></i>
                     </a>
                 {% endif %}
                 <button class="menu-btn">☰</button>

@@ -21,7 +21,7 @@
                     <div class="stat-line"><span>いいね合計</span><strong>{{ likes_total }}</strong></div>
                     <div class="stat-line"><span>保存した単語帳</span><strong>{{ saved_wordbooks_count }}</strong></div>
                 </div>
-                <a href="{% url 'logout' %}" class="btn btn-outline  btn-block" style="width: 80%;">ログアウト</a>
+                <a href="{% url 'logout' %}" class="btn btn-outline  btn-block" style="width: 80%;"><i class="fas fa-sign-out-alt"></i> ログアウト</a>
             </div>
         </aside>
 
@@ -60,8 +60,8 @@
                 <div class="wordbook-grid">
                     {% for wordbook in my_wordbooks %}
                         <a href="{% url 'wordbook_detail' wordbook.pk %}?from=mypage" class="wordbook-card">
-                            <div class="wordbook-image">
-                                <div class="image-placeholder">画像</div>
+                            <div class="wordbook-image" style="background-color: {{ wordbook.user.profile.background_color|default:'#fffff0' }};">
+                                <img src="{% static 'home/images/django icon/' %}{{ wordbook.user.profile.avatar_image|default:'account.png' }}" alt="{{ wordbook.user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
                             </div>
                             <div class="wordbook-info">
                                 <h3>{{ wordbook.title }}</h3>
@@ -84,8 +84,8 @@
                 <div class="wordbook-grid saved-wordbooks-grid">
                     {% for wordbook in saved_wordbooks %}
                         <a href="{% url 'wordbook_detail' wordbook.pk %}" class="wordbook-card">
-                            <div class="wordbook-image">
-                                <div class="image-placeholder">画像</div>
+                            <div class="wordbook-image" style="background-color: {{ wordbook.user.profile.background_color|default:'#fffff0' }};">
+                                <img src="{% static 'home/images/django icon/' %}{{ wordbook.user.profile.avatar_image|default:'account.png' }}" alt="{{ wordbook.user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
                             </div>
                             <div class="wordbook-info">
                                 <h3>{{ wordbook.title }}</h3>
@@ -193,12 +193,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 avatarGrid.querySelectorAll('.avatar-item').forEach(el => {
                     el.classList.toggle('selected', el.querySelector('img').alt === avatarName);
                 });
-                
-                // モーダルを閉じる
-                avatarModal.style.display = 'none';
-                
-                // 成功メッセージを表示
-                alert('アバター画像を更新しました');
             } else {
                 alert('アバター画像の更新に失敗しました');
             }
