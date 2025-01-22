@@ -341,48 +341,34 @@ def wordcard_delete(request, pk):
 @login_required
 def wordbook_like_toggle(request, pk):
     wordbook = get_wordbook_for_view(pk, request.user)
-    next_url = request.POST.get('next') or reverse('wordbook_detail', args=[pk])
     if request.method == 'POST':
         like, created = wordBookLike.objects.get_or_create(user=request.user, wordbook=wordbook)
         if not created:
             like.delete()
-    return redirect(next_url)   
+        return JsonResponse({'liked': created, 'likes_count': wordbook.likes.count()})
+    return JsonResponse({'error': 'POST required'}, status=400)   
 
 
 # ブックマークトグル
 @login_required
 def wordbook_bookmark_toggle(request, pk):
     wordbook = get_wordbook_for_view(pk, request.user)
-    next_url = request.POST.get('next') or reverse('wordbook_detail', args=[pk])
     if request.method == 'POST':
         bookmark, created = WordBookBookmark.objects.get_or_create(user=request.user, wordbook=wordbook)
         if not created:
             bookmark.delete()
-    return redirect(next_url)
+        return JsonResponse({'bookmarked': created})
+    return JsonResponse({'error': 'Invalid request'}, status=400)
 
 
 @login_required
 def wordbook_toggle_public(request, pk):
     wordbook = get_object_or_404(WordBook, pk=pk, user=request.user)
-    if request.method != 'POST':
-        return JsonResponse({'error': {'code': 'BadRequest', 'message': 'POST required'}}, status=400)
-
-    action = request.POST.get('action')
-    if action == 'publish':
-        wordbook.is_public = True
-        message = '単語帳を公開しました'
-    elif action == 'unpublish':
-        wordbook.is_public = False
-        message = '単語帳を非公開にしました'
-    else:
+    if request.method == 'POST':
         wordbook.is_public = not wordbook.is_public
-        message = '公開設定を更新しました'
-
-    wordbook.save(update_fields=['is_public'])
-    messages.success(request, message)
-
-    next_url = request.POST.get('next') or reverse('wordbook_detail', args=[pk])
-    return redirect(next_url)
+        wordbook.save(update_fields=['is_public'])
+        return JsonResponse({'is_public': wordbook.is_public})
+    return JsonResponse({'error': 'POST required'}, status=400)
 
 
 # ---- Tag APIs ----

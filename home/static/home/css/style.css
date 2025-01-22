@@ -5,6 +5,11 @@ c/* リセット */
     box-sizing: border-box;
 }
 
+html {
+    margin: 0;
+    padding: 0;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     color: #333;
@@ -13,10 +18,12 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    margin: 0;
+    padding: 0;
 }
 
 .main-content {
-    flex: 1;
+    flex: 1 0 auto;
     padding: 2rem 0;
 }
 
@@ -26,6 +33,8 @@ body {
     padding: 1rem 0;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     position: relative;
+    margin: 0;
+    width: 100%;
 }
 
 .header .container {
@@ -42,7 +51,7 @@ body {
 /* ヘッダー検索バー */
 .header-search-form {
     flex: 1;
-    max-width: 800px;
+    max-width: 1200px;
 }
 
 .header-search-wrapper {
@@ -547,33 +556,45 @@ body {
 /* ボタン */
 .btn {
     padding: 0.75rem 1.5rem;
-    border-radius: 8px;
+    border-radius: 12px;
     text-decoration: none;
-    font-weight: bold;
-    display: inline-block;
-    transition: all 0.3s;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
     border: none;
     cursor: pointer;
     font-size: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .btn-primary {
-    background-color: #333;
+    background: #FFB5C0;
     color: #fff;
+    box-shadow: 0 2px 8px rgba(255, 181, 192, 0.3);
 }
 
 .btn-primary:hover {
-    background-color: #555;
+    opacity: 0.9;
+}
+
+.btn-primary:active {
+    transform: translateY(0);
 }
 
 .btn-secondary {
     background-color: #fff;
     color: #333;
-    border: 2px solid #333;
+    border: 2px solid #E0E0E0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 .btn-secondary:hover {
-    background-color: #f0f0f0;
+    background-color: #FFF5F5;
+    border-color: #FFB5C0;
+    color: #FFB5C0;
 }
 
 .btn-outline {
@@ -831,44 +852,92 @@ body {
     font-size: 1.8rem;
 }
 
+/* 単語帳グリッド - デフォルトは5列グリッド */
 .wordbook-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1.5rem;
+    padding-bottom: 1rem;
+}
+
+/* マイページとindexは横スクロール */
+.mypage-layout .wordbook-grid,
+.index-layout .wordbook-grid {
     display: flex;
     gap: 1.5rem;
     overflow-x: auto;
-    padding-bottom: 1rem;
     scrollbar-width: none;
     -ms-overflow-style: none;
 }
 
-.wordbook-grid::-webkit-scrollbar {
+.mypage-layout .wordbook-grid::-webkit-scrollbar,
+.index-layout .wordbook-grid::-webkit-scrollbar {
     display: none;
 }
 
-.wordbook-card {
-    background: #fff;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    text-decoration: none;
-    color: #333;
-    transition: transform 0.3s, box-shadow 0.3s;
+.mypage-layout .wordbook-card,
+.index-layout .wordbook-card {
     min-width: 250px;
     flex-shrink: 0;
 }
 
+.wordbook-card {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    text-decoration: none;
+    color: #333;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    border: 2px solid transparent;
+}
+
 .wordbook-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 20px rgba(255, 181, 192, 0.25);
+    border-color: #FFB5C0;
+}
+
+.wordbook-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 105, 180, 0.1) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.wordbook-card:hover::before {
+    opacity: 1;
 }
 
 .wordbook-image {
-    height: 150px;
+    height: 160px;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    border-radius: 12px;
     background-color: #fffff0;
+    position: relative;
+    transition: transform 0.4s;
+}
+
+.wordbook-card:hover .wordbook-image {
+    transform: scale(1.02);
+}
+
+.wordbook-image img {
+    transition: filter 0.4s;
+}
+
+.wordbook-card:hover .wordbook-image img {
+    filter: brightness(1.1);
 }
 
 .image-placeholder {
@@ -878,17 +947,41 @@ body {
 }
 
 .wordbook-info {
-    padding: 1rem;
+    padding: 1.25rem;
+    position: relative;
+    z-index: 2;
+    background: white;
 }
 
 .wordbook-info h3 {
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.15rem;
+    margin-bottom: 0.75rem;
+    font-weight: 700;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    color: #333;
+}
+
+.wordbook-card:hover .wordbook-info h3 {
+    color: #FFB5C0;
 }
 
 .card-count {
     color: #666;
     font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+}
+
+.card-count .like-icon {
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
 }
 
 /* アクションボタンの並び */
@@ -951,9 +1044,82 @@ body {
     gap: 2rem;
     margin-bottom: 3rem;
     background: #fff;
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 2.5rem;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(255, 105, 180, 0.12);
+    position: relative;
+    border: 2px solid #FFE4E9;
+}
+
+.btn-back-header {
+    position: absolute;
+    top: 1.5rem;
+    left: 1.5rem;
+    background: #FFB5C0;
+    color: white;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(255, 181, 192, 0.3);
+    font-size: 1.2rem;
+    z-index: 10;
+}
+
+.btn-back-header:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 10px rgba(255, 181, 192, 0.4);
+    background: #FF9AA8;
+}
+
+.header-actions {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+    z-index: 10;
+}
+
+.btn-header-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    background: #90C695;
+    color: white;
+    border: none;
+    border-radius: 24px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 2px 6px rgba(144, 198, 149, 0.3);
+}
+
+.btn-header-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 10px rgba(144, 198, 149, 0.4);
+    background: #7AB87F;
+}
+
+.btn-header-action:first-child {
+    background: #FFB5C0;
+    box-shadow: 0 2px 6px rgba(255, 181, 192, 0.3);
+}
+
+.btn-header-action:first-child:hover {
+    background: #FF9AA8;
+    box-shadow: 0 3px 10px rgba(255, 181, 192, 0.4);
+}
+
+.btn-header-action i {
+    font-size: 1.1rem;
 }
 
 .wordbook-detail-left {
@@ -973,9 +1139,9 @@ body {
 
 /* クイズページレイアウト */
 .quiz-page {
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
     padding: 2.5rem 2.8rem 3rem;
     margin: 1.5rem auto;
     width: 100%;
@@ -983,6 +1149,7 @@ body {
     min-height: calc(100vh - 400px);
     display: flex;
     flex-direction: column;
+    border: 1px solid #E0E0E0;
 }
 
 .quiz-page-header {
@@ -991,24 +1158,30 @@ body {
     justify-content: space-between;
     gap: 1rem;
     flex-wrap: wrap;
-    margin-bottom: 1.2rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #FFE4E9;
 }
 
 .quiz-page-meta {
     display: flex;
-    gap: 0.9rem;
+    gap: 1rem;
     align-items: center;
-    font-weight: 600;
-    color: #444;
+    font-weight: 700;
+    color: #333;
 }
 
 .quiz-wordbook-title {
-    font-size: 1.05rem;
+    font-size: 1.2rem;
+    color: #FF69B4;
 }
 
 .quiz-card-count {
-    font-size: 0.95rem;
-    color: #777;
+    font-size: 1rem;
+    color: #666;
+    background: #FFF;
+    padding: 0.4rem 0.8rem;
+    border-radius: 12px;
 }
 
 .quiz-modal-overlay {
@@ -1018,26 +1191,53 @@ body {
     align-items: center;
     justify-content: center;
     padding: 1.5rem;
+    backdrop-filter: blur(8px);
 }
 
 .quiz-modal-body {
-    background: #fff;
+    background: white;
     width: min(900px, 92vw);
-    border-radius: 16px;
-    padding: 1.75rem;
+    border-radius: 24px;
+    padding: 2.5rem;
     position: relative;
-    box-shadow: 0 18px 48px rgba(0,0,0,0.18);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    border: 1px solid #E0E0E0;
+    animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .quiz-close {
     position: absolute;
-    top: 12px;
-    right: 12px;
-    background: none;
+    top: 16px;
+    right: 16px;
+    background: #F5F5F5;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
     border: none;
-    font-size: 1.4rem;
+    font-size: 1.5rem;
     cursor: pointer;
-    color: #999;
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.quiz-close:hover {
+    background: #E0E0E0;
+    color: #333;
+    transform: rotate(90deg);
 }
 
 .quiz-section {
@@ -1089,27 +1289,29 @@ body {
 
 .quiz-timer {
     position: relative;
-    width: 80px;
-    height: 80px;
+    width: 90px;
+    height: 90px;
+    filter: drop-shadow(0 4px 8px rgba(255, 105, 180, 0.2));
 }
 
 .quiz-timer svg {
-    width: 80px;
-    height: 80px;
+    width: 90px;
+    height: 90px;
     transform: rotate(-90deg);
 }
 
 .timer-bg {
     fill: none;
-    stroke: #f2f2f2;
-    stroke-width: 8;
+    stroke: #FFE4E9;
+    stroke-width: 10;
 }
 
 .timer-progress {
     fill: none;
-    stroke: #ff9f47;
-    stroke-width: 8;
+    stroke: url(#timerGradient);
+    stroke-width: 10;
     stroke-linecap: round;
+    filter: drop-shadow(0 2px 4px rgba(255, 105, 180, 0.3));
 }
 
 .timer-label {
@@ -1118,9 +1320,10 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 1.4rem;
-    color: #333;
+    font-weight: 900;
+    font-size: 1.6rem;
+    color: #FFB5C0;
+    text-shadow: 0 2px 4px rgba(255, 181, 192, 0.2);
 }
 
 .quiz-progress {
@@ -1206,17 +1409,35 @@ body {
 
 .quiz-option:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+
+.quiz-option:active {
+    transform: translateY(0);
 }
 
 .quiz-option.pink {
-    background: #f4c6cb;
-    color: #4a2c2c;
+    background: #FFD5E0;
+    color: #8B3A5C;
+    border: 3px solid #FFB5C5;
+}
+
+.quiz-option.pink:hover {
+    background: #FFC0D0;
+    border-color: #FFB5C0;
+    box-shadow: 0 6px 16px rgba(255, 181, 192, 0.3);
 }
 
 .quiz-option.green {
-    background: #c6e5cc;
-    color: #1f3d2b;
+    background: #D5F0DD;
+    color: #2D5A3D;
+    border: 3px solid #B5D5BE;
+}
+
+.quiz-option.green:hover {
+    background: #C0E8CC;
+    border-color: #90C695;
+    box-shadow: 0 6px 16px rgba(144, 198, 149, 0.3);
 }
 
 .quiz-feedback-card {
@@ -1418,8 +1639,11 @@ body {
 .footer {
     background-color: #FFB5C0;
     text-align: center;
-    padding: 1.5rem;
-    margin-top: 0;
+    padding: 1.5rem 0;
+    margin: 0;
+    margin-top: auto;
+    flex-shrink: 0;
+    width: 100%;
 }
 
 .footer p {
@@ -1451,37 +1675,22 @@ body {
         gap: 1rem;
     }
     
-    .create-form .form-actions {
-        flex-direction: column;
-    }
-}
-
-/* エラー状態のスタイル */
-.form-input.error,
-.form-textarea.error {
-    border-color: #ff4444;
-    background-color: #fff5f5;
-}
-
-.error-text {
-    color: #ff4444;
-    font-size: 0.9rem;
-    margin-top: 0.25rem;
-}
-
-/* ===== マイページ: 単語帳カードをポップで見やすく ===== */
-.wordbook-grid {
-    display: flex;
-    gap: 1.25rem;
-    overflow-x: auto;
-    padding-bottom: 1rem;
-}
-
-/* マイページのグリッドは横幅を広めに */
-.mypage-layout .wordbook-grid {
     display: flex;
     gap: 1.5rem;
     overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.mypage-layout .wordbook-grid::-webkit-scrollbar,
+.index-layout .wordbook-grid::-webkit-scrollbar {
+    display: none;
+}
+
+.mypage-layout .wordbook-card,
+.index-layout .wordbook-card {
+    min-width: 250px;
+    flex-shrink: 0;
 }
 
 /* 保存した単語帳を横方向に並べる（グリッド） */
@@ -1497,30 +1706,7 @@ body {
     gap: 2rem;
 }
 
-.wordbook-card {
-    background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.85) 100%);
-    border-radius: 14px;
-    overflow: hidden;
-    position: relative;
-    text-decoration: none;
-    color: inherit;
-    display: flex;
-    flex-direction: column;
-    min-height: 260px;
-    transition: transform 0.36s cubic-bezier(.2,.9,.2,1), box-shadow 0.36s;
-    box-shadow: 0 6px 18px rgba(16,24,40,0.06);
-    transform-origin: center bottom;
-    will-change: transform;
-    animation: cardFadeIn 360ms ease both;
-}
-
-.wordbook-card:hover,
-.wordbook-card:focus {
-    transform: translateY(-10px) scale(1.02);
-    box-shadow: 0 18px 40px rgba(16,24,40,0.12);
-    z-index: 2;
-}
-
+/* 単語帳カードの画像とテキスト */
 .wordbook-image {
     height: 140px;
     background-size: cover;
@@ -1829,8 +2015,8 @@ body {
     max-width: 650px;
     max-height: 85vh;
     overflow: hidden;
-    box-shadow: 0 20px 60px rgba(255,105,180,0.25);
-    border: 4px solid #FFB5C0;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    border: 1px solid #E0E0E0;
     animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -2753,3 +2939,352 @@ body {
     font-size: 1.1rem;
 }
 
+/* ========================================
+   新しいUI/UX改善スタイル
+======================================== */
+
+/* 単語帳詳細コンテナ */
+.wordbook-detail-container {
+    position: relative;
+    min-height: 100vh;
+}
+
+/* 単語帳詳細コンテンツ */
+.wordbook-detail-content {
+    padding-top: 2rem;
+    padding-bottom: 5rem;
+}
+
+/* トースト通知 */
+.toast {
+    position: fixed;
+    top: 100px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: #FFB5C0;
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(255, 181, 192, 0.4);
+    font-weight: 700;
+    font-size: 1rem;
+    z-index: 10000;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    min-width: 250px;
+    text-align: center;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast.success {
+    background: #90C695;
+}
+
+.toast.error {
+    background: #FF6B6B;
+}
+
+/* アクションバー */
+.action-bar {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 1.5rem;
+    padding: 0;
+    background: transparent;
+}
+
+.action-form {
+    display: inline-flex;
+    margin: 0;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    background: #F5F5F5;
+    color: #666;
+    border: 2px solid transparent;
+    border-radius: 24px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.action-btn:hover {
+    background: #FFE4E9;
+    color: #FFB5C0;
+    opacity: 0.9;
+}
+
+.action-btn i {
+    font-size: 1.1rem;
+}
+
+.action-btn.active {
+    background: #FFB5C0;
+    color: white;
+    border-color: #FFB5C0;
+    box-shadow: 0 2px 8px rgba(255, 181, 192, 0.3);
+}
+
+.action-btn.active:hover {
+    opacity: 0.9;
+}
+
+.action-count {
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.action-label {
+    font-weight: 600;
+}
+
+/* プレイボタン - 特別なスタイル */
+.btn-play {
+    background: #444 !important;
+    color: white !important;
+    border: none !important;
+    font-weight: 700 !important;
+    font-size: 1.1rem !important;
+    padding: 0.8rem 1.8rem !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.btn-play:hover {
+    background: #555 !important;
+    opacity: 0.9;
+}
+
+.btn-play i {
+    font-size: 1.2rem;
+    margin-right: 0.3rem;
+}
+
+/* トグルスイッチ */
+.toggle-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    padding: 0.65rem 1.25rem;
+    background: #F5F5F5;
+    border-radius: 24px;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.toggle-switch:hover {
+    background: #FFE4E9;
+}
+
+.toggle-switch input {
+    display: none;
+}
+
+.toggle-slider {
+    position: relative;
+    width: 48px;
+    height: 24px;
+    background: #ccc;
+    border-radius: 24px;
+    transition: background 0.3s;
+}
+
+.toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: white;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch input:checked ~ .toggle-slider {
+    background: #90C695;
+}
+
+.toggle-switch input:checked ~ .toggle-slider::before {
+    transform: translateX(24px);
+}
+
+.toggle-label {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #666;
+}
+
+/* FAB (Floating Action Button) */
+.fab {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 64px;
+    height: 64px;
+    background: #FFB5C0;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 4px 16px rgba(255, 181, 192, 0.4);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    transition: all 0.15s ease;
+    z-index: 999;
+    text-decoration: none;
+}
+
+.fab:hover {
+    opacity: 0.9;
+    box-shadow: 0 5px 18px rgba(255, 181, 192, 0.45);
+}
+
+.fab:active {
+    transform: scale(0.98);
+}
+
+.fab i {
+    font-size: 1.5rem;
+}
+
+.fab-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* FAB追加ボタン */
+.fab-add {
+    bottom: 100px;
+    width: 56px;
+    height: 56px;
+    background: #90C695;
+    box-shadow: 0 4px 16px rgba(144, 198, 149, 0.4);
+}
+
+.fab-add:hover {
+    opacity: 0.9;
+    box-shadow: 0 5px 18px rgba(144, 198, 149, 0.45);
+}
+
+.fab-add i {
+    font-size: 1.75rem;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .btn-back-header {
+        width: 40px;
+        height: 40px;
+        top: 1rem;
+        left: 1rem;
+        font-size: 1rem;
+    }
+    
+    .header-actions {
+        top: 1rem;
+        right: 1rem;
+        gap: 0.5rem;
+    }
+    
+    .btn-header-action {
+        padding: 0.5rem 0.9rem;
+        font-size: 0.85rem;
+    }
+    
+    .btn-header-action span {
+        display: none;
+    }
+    
+    .btn-header-action i {
+        font-size: 1.1rem;
+    }
+    
+    .wordbook-detail-header {
+        padding: 2rem 1.5rem;
+    }
+    
+    .action-bar {
+        gap: 0.5rem;
+        padding: 0.75rem;
+    }
+    
+    .action-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+    
+    .action-btn i {
+        font-size: 1rem;
+    }
+    
+    .fab {
+        width: 56px;
+        height: 56px;
+        bottom: 20px;
+        right: 20px;
+    }
+    
+    .fab i {
+        font-size: 1.25rem;
+    }
+    
+    .fab-label {
+        font-size: 0.65rem;
+    }
+    
+    .fab-add {
+        bottom: 88px;
+        width: 48px;
+        height: 48px;
+    }
+    
+    .fab-add i {
+        font-size: 1.5rem;
+    }
+}
+
+/* アニメーション */
+@keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.2); }
+    50% { transform: scale(1); }
+}
+
+.action-btn.active i {
+    animation: heartbeat 0.6s ease;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.action-bar {
+    animation: slideInUp 0.5s ease;
+}

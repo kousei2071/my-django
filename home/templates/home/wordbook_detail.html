@@ -4,103 +4,113 @@
 
 {% block content %}
 {% load static %}
-<div class="container">
-    <div class="wordbook-detail-header">
-        <div class="wordbook-detail-left">
-            <div class="wordbook-detail-image" style="background-color: {{ wordbook.get_background_color|default:'#fffff0' }};">
-                <img src="{{ wordbook.get_avatar_url }}" alt="{{ wordbook.user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
-            </div>
-        </div>
-        
-                <div class="wordbook-detail-right">
-                        <h1 class="wordbook-detail-title">{{ wordbook.title }}</h1>
-            
-            <!-- 作成者情報 -->
-            {% if not wordbook.is_ai_generated %}
-            <div class="creator-info">
-                <a href="{% url 'user_profile' wordbook.user.username %}" class="creator-link">
-                    <img src="{{ wordbook.user.profile.get_avatar_url }}" alt="{{ wordbook.user.username }}" class="creator-avatar-small">
-                    <span class="creator-username">{{ wordbook.user.username }}</span>
+<div class="wordbook-detail-container">
+    <div class="container wordbook-detail-content">
+        <div class="wordbook-detail-header">
+            <a href="{% url 'wordbook_list' %}" class="btn-back-header" title="戻る">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            {% if can_edit %}
+            <div class="header-actions">
+                <button onclick="openTagModal()" class="btn-header-action" title="タグを編集">
+                    <i class="fas fa-tags"></i>
+                    <span>タグ</span>
+                </button>
+                <a href="{% url 'wordcard_create' wordbook.pk %}" class="btn-header-action" title="単語カードを追加">
+                    <i class="fas fa-plus"></i>
+                    <span>追加</span>
                 </a>
             </div>
-            {% else %}
-            <div class="creator-info">
-                <span class="ai-badge">
-                    <i class="fas fa-robot"></i> AI生成
-                </span>
-            </div>
             {% endif %}
-            
-            <!-- タグ表示エリア -->
-            <div class="tags-display">
-                {% if wordbook.tags.all %}
-                    {% for tag in wordbook.tags.all %}
-                        <a href="{% url 'wordbook_list' %}?tag={{ tag.name|urlencode }}" class="tag-chip tag-chip-link">
-                            {{ tag.name }}
-                        </a>
-                    {% endfor %}
-                {% else %}
-                    <span class="no-tags">タグなし</span>
-                {% endif %}
-                {% if can_edit %}
-                    <button class="btn-edit-tags" onclick="openTagModal()">タグを編集</button>
-                {% endif %}
+            <div class="wordbook-detail-left">
+                <div class="wordbook-detail-image" style="background-color: {{ wordbook.get_background_color|default:'#fffff0' }};">
+                    <img src="{{ wordbook.get_avatar_url }}" alt="{{ wordbook.user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
             </div>
-
-            {% if can_edit %}
-            <div class="publish-controls">
-                <div class="publish-status">
-                    <span class="publish-label">公開設定</span>
-                    <span class="publish-state {% if wordbook.is_public %}state-public{% else %}state-private{% endif %}">
-                        {% if wordbook.is_public %}公開中{% else %}非公開{% endif %}
+            
+            <div class="wordbook-detail-right">
+                <h1 class="wordbook-detail-title">{{ wordbook.title }}</h1>
+                
+                <!-- 作成者情報 -->
+                {% if not wordbook.is_ai_generated %}
+                <div class="creator-info">
+                    <a href="{% url 'user_profile' wordbook.user.username %}" class="creator-link">
+                        <img src="{{ wordbook.user.profile.get_avatar_url }}" alt="{{ wordbook.user.username }}" class="creator-avatar-small">
+                        <span class="creator-username">{{ wordbook.user.username }}</span>
+                    </a>
+                </div>
+                {% else %}
+                <div class="creator-info">
+                    <span class="ai-badge">
+                        <i class="fas fa-robot"></i> AI生成
                     </span>
                 </div>
-                <form method="post" action="{% url 'wordbook_toggle_public' wordbook.pk %}" class="publish-form">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="{% if wordbook.is_public %}unpublish{% else %}publish{% endif %}">
-                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                    <button type="submit" class="btn btn-secondary">
-                        {% if wordbook.is_public %}非公開にする{% else %}公開する{% endif %}
+                {% endif %}
+                
+                <!-- タグ表示エリア -->
+                <div class="tags-display">
+                    {% if wordbook.tags.all %}
+                        {% for tag in wordbook.tags.all %}
+                            <a href="{% url 'wordbook_list' %}?tag={{ tag.name|urlencode }}" class="tag-chip tag-chip-link">
+                                {{ tag.name }}
+                            </a>
+                        {% endfor %}
+                    {% else %}
+                        <span class="no-tags">タグなし</span>
+                    {% endif %}
+                </div>
+                
+                <!-- アクションバー -->
+                <div class="action-bar">
+                    {% if cards.count >= 4 %}
+                    <button class="action-btn btn-play" onclick="openQuizModal()" title="プレイ">
+                        <i class="fas fa-play"></i>
+                        <span>プレイ</span>
                     </button>
-                </form>
-                <p class="publish-note">公開すると他のユーザーがこの単語帳を閲覧・プレイできます。</p>
-            </div>
-            {% endif %}
-            
-            <div class="like-action action-buttons">
-            {% if user.is_authenticated %}
-                <button type="button" class="btn btn-primary btn-play" onclick="openQuizModal()">プレイする</button>
-                <form method="post" action="{% url 'wordbook_like' wordbook.pk %}">
-                    {% csrf_token %}
-                     <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                     <button type="submit" class="btn btn-secondary {% if user_has_liked %}is-liked{% endif %}">
-                      <img src="{% static 'home/images/like-3d.png' %}" alt="いいね" class="like-icon"> {{ likes_count }} {% if user_has_liked %}取り消す{% else %}いいね{% endif %}
+                    {% endif %}
+                    
+                    {% if user.is_authenticated %}
+                    <button class="action-btn {% if user_has_liked %}active{% endif %}" onclick="toggleLike()" title="いいね">
+                        <i class="fas fa-heart"></i>
+                        <span id="likeCount">{{ likes_count }}</span>
                     </button>
-                 </form>
-                 <form method="post" action="{% url 'wordbook_bookmark' wordbook.pk %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                    <button type="submit" class="btn btn-secondary {% if user_has_bookmarked %}is-bookmarked{% endif %}">
-                        <img src="{% static 'home/images/bookmark_3d.png' %}" alt="ブックマーク" class="bookmark-icon"> {% if user_has_bookmarked %}保存済み{% else %}保存する{% endif %}
+                    
+                    <button class="action-btn {% if user_has_bookmarked %}active{% endif %}" onclick="toggleBookmark()" title="保存">
+                        <i class="fas fa-bookmark"></i>
+                        <span id="bookmarkLabel">{% if user_has_bookmarked %}保存済み{% else %}保存{% endif %}</span>
                     </button>
-                 </form>
-              {% else %}
-                 <button type="button" class="btn btn-primary btn-play" onclick="openQuizModal()">プレイする</button>
-                 <a class="btn btn-secondary" href="{% url 'login' %}?next={{ request.get_full_path }}">ログインしていいね・保存</a>
-            {% endif %}
-        </div>
+                    
                     {% if can_edit %}
-                <a href="{% url 'wordcard_create' wordbook.pk %}" class="btn btn-primary">+ 単語カードを追加</a>
-                <a href="{% url 'wordbook_list' %}" class="btn btn-secondary">単語帳一覧に戻る</a>
-            {% endif %}
+                    <label class="toggle-switch" title="公開設定">
+                        <input type="checkbox" id="publishToggle" {% if wordbook.is_public %}checked{% endif %} onchange="togglePublic()">
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label" id="publishLabel">{{ wordbook.is_public|yesno:"公開,非公開" }}</span>
+                    </label>
+                    {% else %}
+                    <div class="action-btn" title="公開状態">
+                        <i class="fas fa-globe"></i>
+                        <span class="action-label">公開中</span>
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <a href="{% url 'login' %}?next={{ request.get_full_path }}" class="action-btn" title="いいね">
+                        <i class="far fa-heart"></i>
+                        <span class="action-count">{{ likes_count }}</span>
+                    </a>
+                    <a href="{% url 'login' %}?next={{ request.get_full_path }}" class="action-btn" title="保存">
+                        <i class="far fa-bookmark"></i>
+                        <span class="action-label">保存</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div class="wordcard-list">
-        <h2>単語カード一覧 ({{ cards.count }}枚)</h2>
-        
-        {% if cards %}
-            <div class="wordcard-grid">
+        <div class="wordcard-list">
+            <h2>単語カード一覧 ({{ cards.count }}枚)</h2>
+            
+            {% if cards %}
+                <div class="wordcard-grid">
                 {% for card in cards %}
                     <div class="wordcard">
                         <div class="wordcard-star-container">
@@ -133,11 +143,18 @@
                 {% endfor %}
             </div>
         {% else %}
-            <p class="empty-message">まだ単語カードがありません。単語カードを追加しましょう！</p>
-        {% endif %}
+                <p class="empty-message">まだ単語カードがありません。単語カードを追加しましょう！</p>
+            {% endif %}
+        </div>
     </div>
 </div>
 
+<!-- FAB (Floating Action Button) - プレイボタンは削除、追加ボタンのみ -->
+{% if can_edit %}
+<a href="{% url 'wordcard_create' wordbook.pk %}" class="fab fab-add" title="単語カードを追加">
+    <i class="fas fa-plus"></i>
+</a>
+{% endif %}
 <!-- クイズ開始モーダル（スタートのみ） -->
 <div id="quizModal" class="quiz-modal" aria-hidden="true" style="display: none;">
     <div class="quiz-modal-overlay" role="dialog" aria-modal="true">
@@ -426,6 +443,39 @@ window.onclick = function(event) {
 <script>
 const quizWordbookId = {{ wordbook.pk }};
 const quizCardCount = {{ cards.count }};
+const csrftoken = '{{ csrf_token }}';
+
+function toggleLike() {
+    const btn = event.currentTarget;
+    fetch('{% url "wordbook_like" wordbook.pk %}', {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrftoken}
+    }).then(r => r.json()).then(d => {
+        btn.classList.toggle('active');
+        document.getElementById('likeCount').textContent = d.likes_count;
+    });
+}
+
+function toggleBookmark() {
+    const btn = event.currentTarget;
+    fetch('{% url "wordbook_bookmark" wordbook.pk %}', {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrftoken}
+    }).then(r => r.json()).then(d => {
+        btn.classList.toggle('active');
+        document.getElementById('bookmarkLabel').textContent = d.bookmarked ? '保存済み' : '保存';
+    });
+}
+
+function togglePublic() {
+    const toggle = document.getElementById('publishToggle');
+    fetch('{% url "wordbook_toggle_public" wordbook.pk %}', {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrftoken}
+    }).then(r => r.json()).then(d => {
+        document.getElementById('publishLabel').textContent = d.is_public ? '公開' : '非公開';
+    });
+}
 
 function openQuizModal() {
     if (quizCardCount < 4) {
@@ -441,8 +491,11 @@ function closeQuizModal() {
 
 function goPlayPage() {
     const difficulty = document.getElementById('quizDifficulty').value;
-    const base = '{% url "wordbook_play" wordbook.pk %}';
-    window.location.href = `${base}?mode=all&difficulty=${difficulty}`;
+    window.location.href = `/wordbooks/${quizWordbookId}/play/?mode=all&difficulty=${difficulty}`;
+}
+
+function startQuiz(quizType) {
+    window.location.href = `/wordbooks/${quizWordbookId}/play/?type=${quizType}`;
 }
 </script>
 
