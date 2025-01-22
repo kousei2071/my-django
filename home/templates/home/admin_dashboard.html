@@ -1,0 +1,479 @@
+{% extends 'home/base.html' %}
+{% load static %}
+
+{% block title %}管理者ダッシュボード - TANKORE{% endblock %}
+
+{% block content %}
+<style>
+    .admin-dashboard {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 30px 20px;
+    }
+    
+    .admin-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+    
+    .admin-header h1 {
+        margin: 0;
+        font-size: 2.5em;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-left: 4px solid #667eea;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+    
+    .stat-value {
+        font-size: 2.5em;
+        font-weight: bold;
+        color: #667eea;
+        margin: 10px 0;
+    }
+    
+    .stat-label {
+        color: #666;
+        font-size: 1em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .section-title {
+        font-size: 1.8em;
+        margin: 40px 0 20px 0;
+        color: #333;
+        border-bottom: 3px solid #667eea;
+        padding-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .wordbook-table {
+        width: 100%;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    
+    .wordbook-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .wordbook-table th {
+        background: #667eea;
+        color: white;
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+    }
+    
+    .wordbook-table td {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .wordbook-table tr:hover {
+        background: #f8f9fa;
+    }
+    
+    .action-btn {
+        padding: 8px 15px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9em;
+        transition: all 0.3s ease;
+        margin-right: 5px;
+    }
+    
+    .btn-pin {
+        background: #ffc107;
+        color: #333;
+    }
+    
+    .btn-pin:hover {
+        background: #ffb300;
+        transform: scale(1.05);
+    }
+    
+    .btn-pin.pinned {
+        background: #ff5722;
+        color: white;
+    }
+    
+    .btn-delete {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .btn-delete:hover {
+        background: #c82333;
+        transform: scale(1.05);
+    }
+    
+    .pinned-badge {
+        background: #ff5722;
+        color: white;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.8em;
+        font-weight: bold;
+    }
+    
+    .like-count {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        color: #e91e63;
+    }
+    
+    .user-link {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .user-link:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<div class="admin-dashboard">
+    <div class="admin-header">
+        <h1>
+            <i class="fas fa-crown"></i>
+            管理者ダッシュボード
+        </h1>
+        <p style="margin-top: 10px; opacity: 0.9;">ようこそ、sakana kousei1207さん！</p>
+    </div>
+    
+    <!-- 統計カード -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">総ユーザー数</div>
+            <div class="stat-value">{{ total_users }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">総単語帳数</div>
+            <div class="stat-value">{{ total_wordbooks }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">総単語カード数</div>
+            <div class="stat-value">{{ total_wordcards }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">総いいね数</div>
+            <div class="stat-value">{{ total_likes }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">総ブックマーク数</div>
+            <div class="stat-value">{{ total_bookmarks }}</div>
+        </div>
+    </div>
+    
+    <!-- ピン留めされた単語帳 -->
+    {% if pinned_wordbooks %}
+    <h2 class="section-title">
+        <i class="fas fa-thumbtack"></i>
+        ピン留め中のおすすめ単語帳
+    </h2>
+    <div class="wordbook-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>タイトル</th>
+                    <th>作成者</th>
+                    <th>いいね数</th>
+                    <th>カード数</th>
+                    <th>作成日</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for wb in pinned_wordbooks %}
+                <tr>
+                    <td>
+                        <a href="{% url 'wordbook_detail' wb.pk %}" class="user-link">{{ wb.title }}</a>
+                        <span class="pinned-badge">📌 ピン留め中</span>
+                    </td>
+                    <td>
+                        <a href="#" class="user-link">{{ wb.user.username }}</a>
+                    </td>
+                    <td>
+                        <span class="like-count">
+                            <i class="fas fa-heart"></i>
+                            {{ wb.like_count }}
+                        </span>
+                    </td>
+                    <td>{{ wb.card_count }}</td>
+                    <td>{{ wb.created_at|date:"Y/m/d" }}</td>
+                    <td>
+                        <button class="action-btn btn-pin pinned" onclick="togglePin({{ wb.pk }})">
+                            <i class="fas fa-thumbtack"></i> ピン解除
+                        </button>
+                        <button class="action-btn btn-delete" onclick="deleteWordbook({{ wb.pk }}, '{{ wb.title|escapejs }}')">
+                            <i class="fas fa-trash"></i> 削除
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+    
+    <!-- 人気の単語帳 -->
+    <h2 class="section-title">
+        <i class="fas fa-fire"></i>
+        人気の単語帳 TOP10
+    </h2>
+    <div class="wordbook-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>順位</th>
+                    <th>タイトル</th>
+                    <th>作成者</th>
+                    <th>いいね数</th>
+                    <th>カード数</th>
+                    <th>作成日</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for wb in popular_wordbooks %}
+                <tr>
+                    <td><strong>{{ forloop.counter }}</strong></td>
+                    <td>
+                        <a href="{% url 'wordbook_detail' wb.pk %}" class="user-link">{{ wb.title }}</a>
+                        {% if wb.is_pinned %}
+                        <span class="pinned-badge">📌 ピン留め中</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="#" class="user-link">{{ wb.user.username }}</a>
+                    </td>
+                    <td>
+                        <span class="like-count">
+                            <i class="fas fa-heart"></i>
+                            {{ wb.like_count }}
+                        </span>
+                    </td>
+                    <td>{{ wb.card_count }}</td>
+                    <td>{{ wb.created_at|date:"Y/m/d" }}</td>
+                    <td>
+                        <button class="action-btn btn-pin {% if wb.is_pinned %}pinned{% endif %}" onclick="togglePin({{ wb.pk }})">
+                            <i class="fas fa-thumbtack"></i> {% if wb.is_pinned %}解除{% else %}ピン留め{% endif %}
+                        </button>
+                        <button class="action-btn btn-delete" onclick="deleteWordbook({{ wb.pk }}, '{{ wb.title|escapejs }}')">
+                            <i class="fas fa-trash"></i> 削除
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- 最近作成された単語帳 -->
+    <h2 class="section-title">
+        <i class="fas fa-clock"></i>
+        最近作成された単語帳
+    </h2>
+    <div class="wordbook-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>タイトル</th>
+                    <th>作成者</th>
+                    <th>いいね数</th>
+                    <th>カード数</th>
+                    <th>作成日</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for wb in recent_wordbooks %}
+                <tr>
+                    <td>
+                        <a href="{% url 'wordbook_detail' wb.pk %}" class="user-link">{{ wb.title }}</a>
+                        {% if wb.is_pinned %}
+                        <span class="pinned-badge">📌 ピン留め中</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="#" class="user-link">{{ wb.user.username }}</a>
+                    </td>
+                    <td>
+                        <span class="like-count">
+                            <i class="fas fa-heart"></i>
+                            {{ wb.likes.count }}
+                        </span>
+                    </td>
+                    <td>{{ wb.card_count }}</td>
+                    <td>{{ wb.created_at|date:"Y/m/d H:i" }}</td>
+                    <td>
+                        <button class="action-btn btn-pin {% if wb.is_pinned %}pinned{% endif %}" onclick="togglePin({{ wb.pk }})">
+                            <i class="fas fa-thumbtack"></i> {% if wb.is_pinned %}解除{% else %}ピン留め{% endif %}
+                        </button>
+                        <button class="action-btn btn-delete" onclick="deleteWordbook({{ wb.pk }}, '{{ wb.title|escapejs }}')">
+                            <i class="fas fa-trash"></i> 削除
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- アクティブユーザー -->
+    <h2 class="section-title">
+        <i class="fas fa-users"></i>
+        アクティブユーザー TOP10
+    </h2>
+    <div class="wordbook-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>順位</th>
+                    <th>ユーザー名</th>
+                    <th>単語帳数</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in active_users %}
+                <tr>
+                    <td><strong>{{ forloop.counter }}</strong></td>
+                    <td>
+                        <a href="#" class="user-link">{{ user.username }}</a>
+                    </td>
+                    <td>{{ user.wordbook_count }} 冊</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- タグ使用統計 -->
+    <h2 class="section-title">
+        <i class="fas fa-tags"></i>
+        人気タグ TOP10
+    </h2>
+    <div class="wordbook-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>順位</th>
+                    <th>タグ名</th>
+                    <th>使用回数</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tag in tag_stats %}
+                <tr>
+                    <td><strong>{{ forloop.counter }}</strong></td>
+                    <td>
+                        <a href="{% url 'wordbook_list' %}?tag={{ tag.name }}" class="user-link">
+                            {{ tag.name }}
+                        </a>
+                    </td>
+                    <td>{{ tag.usage_count }} 回</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function togglePin(wordbookId) {
+    fetch(`/admin/wordbooks/${wordbookId}/toggle-pin/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('エラーが発生しました');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('エラーが発生しました');
+    });
+}
+
+function deleteWordbook(wordbookId, title) {
+    if (confirm(`本当に単語帳「${title}」を削除しますか？この操作は取り消せません。`)) {
+        fetch(`/admin/wordbooks/${wordbookId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('削除に失敗しました');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('エラーが発生しました');
+        });
+    }
+}
+</script>
+
+{% endblock %}

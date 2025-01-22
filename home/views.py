@@ -130,6 +130,9 @@ def wordbook_list(request):
         wordbooks_base = wordbooks_base.filter(tags__id__in=tag_id_list).distinct()
         selected_tags = Tag.objects.filter(id__in=tag_id_list)
     
+    # ピン留めされた単語帳（管理者のおすすめ）
+    pinned_wordbooks = WordBook.objects.filter(is_pinned=True).annotate(like_count=Count('likes')).order_by('-created_at')[:6]
+    
     # 人気の単語帳（いいね数順）
     popular_wordbooks = wordbooks_base.annotate(like_count=Count('likes')).order_by('-like_count', '-created_at')[:6]
     
@@ -144,7 +147,11 @@ def wordbook_list(request):
     # 選択中のタグ名のリストを作成
     selected_tag_names = [tag.name for tag in selected_tags]
     
+    # 管理者かどうかをチェック
+    is_admin = is_admin_user(request.user) if request.user.is_authenticated else False
+    
     context = {
+        'pinned_wordbooks': pinned_wordbooks,  # ピン留め単語帳を追加
         'popular_wordbooks': popular_wordbooks,
         'ai_wordbooks': ai_wordbooks,
         'popular_tags': popular_tags,  # 人気タグを追加
@@ -152,6 +159,7 @@ def wordbook_list(request):
         'selected_tags': selected_tags,  # 選択中のタグ
         'selected_tag_names': selected_tag_names,  # 選択中のタグ名リスト
         'is_filtered': bool(tag_name or tag_ids or search_query),  # フィルター中かどうか
+        'is_admin': is_admin,  # 管理者権限
     }
     return render(request, 'home/wordbook_list.html', context)
 
@@ -548,3 +556,93 @@ def toggle_star(request, card_id):
         is_starred = True
         
     return JsonResponse({'is_starred': is_starred})
+
+
+# ==================== 管理者専用機能 ====================
+def is_admin_user(user):
+    """sakana kousei1207かどうかをチェック"""
+    return user.username == 'sakana' and user.first_name == 'kousei1207'
+
+@login_required
+def admin_dashboard(request):
+    """管理者専用ダッシュボード"""
+    if not is_admin_user(request.user):
+        return HttpResponseForbidden("この機能は管理者専用です。")
+    
+    # 統計情報を収集
+    total_users = User.objects.count()
+    total_wordbooks = WordBook.objects.count()
+    total_wordcards = WordCard.objects.count()
+    total_likes = wordBookLike.objects.count()
+    total_bookmarks = WordBookBookmark.objects.count()
+    
+    # 人気の単語帳TOP10
+    popular_wordbooks = WordBook.objects.annotate(
+        like_count=Count('likes')
+    ).order_by('-like_count')[:10]
+    
+    # 最近作成された単語帳
+    recent_wordbooks = WordBook.objects.select_related('user').order_by('-created_at')[:10]
+    
+    # アクティブユーザーTOP10（単語帳作成数）
+    active_users = User.objects.annotate(
+        wordbook_count=Count('wordbooks')
+    ).filter(wordbook_count__gt=0).order_by('-wordbook_count')[:10]
+    
+    # タグ使用統計
+    tag_stats = Tag.objects.annotate(
+        usage_count=Count('wordbooks')
+    ).filter(usage_count__gt=0).order_by('-usage_count')[:10]
+    
+    # ピン留めされた単語帳
+    pinned_wordbooks = WordBook.objects.filter(is_pinned=True).annotate(
+        like_count=Count('likes')
+    ).order_by('-created_at')
+    
+    context = {
+        'total_users': total_users,
+        'total_wordbooks': total_wordbooks,
+        'total_wordcards': total_wordcards,
+        'total_likes': total_likes,
+        'total_bookmarks': total_bookmarks,
+        'popular_wordbooks': popular_wordbooks,
+        'recent_wordbooks': recent_wordbooks,
+        'active_users': active_users,
+        'tag_stats': tag_stats,
+        'pinned_wordbooks': pinned_wordbooks,
+    }
+    
+    return render(request, 'home/admin_dashboard.html', context)
+
+
+@login_required
+def admin_delete_wordbook(request, pk):
+    """管理者専用：単語帳を削除（BAN機能）"""
+    if not is_admin_user(request.user):
+        return HttpResponseForbidden("この機能は管理者専用です。")
+    
+    wordbook = get_object_or_404(WordBook, pk=pk)
+    
+    if request.method == 'POST':
+        title = wordbook.title
+        wordbook.delete()
+        messages.success(request, f'単語帳「{title}」を削除しました。')
+        return redirect('admin_dashboard')
+    
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+@login_required
+def admin_toggle_pin(request, pk):
+    """管理者専用：単語帳のピン留めをトグル"""
+    if not is_admin_user(request.user):
+        return JsonResponse({'error': '権限がありません'}, status=403)
+    
+    wordbook = get_object_or_404(WordBook, pk=pk)
+    wordbook.is_pinned = not wordbook.is_pinned
+    wordbook.save()
+    
+    return JsonResponse({
+        'success': True,
+        'is_pinned': wordbook.is_pinned
+    })

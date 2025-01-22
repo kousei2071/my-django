@@ -56,6 +56,9 @@ class WordBook(models.Model):
     background_color = models.CharField(max_length=7, blank=True, null=True)
     is_ai_generated = models.BooleanField(default=False)
     
+    # 管理者専用機能
+    is_pinned = models.BooleanField(default=False, verbose_name='ピン留め（おすすめ）')
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
