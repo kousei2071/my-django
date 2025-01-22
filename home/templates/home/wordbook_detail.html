@@ -19,7 +19,9 @@
             <div class="tags-display">
                 {% if wordbook.tags.all %}
                     {% for tag in wordbook.tags.all %}
-                        <span class="tag-chip">{{ tag.name }}</span>
+                        <a href="{% url 'wordbook_list' %}?tag={{ tag.name|urlencode }}" class="tag-chip tag-chip-link">
+                            {{ tag.name }}
+                        </a>
                     {% endfor %}
                 {% else %}
                     <span class="no-tags">タグなし</span>
@@ -98,7 +100,7 @@
         <div class="tag-modal-body">
             <!-- タグ検索 -->
             <div class="tag-search-section">
-                <input type="text" id="tagSearchInput" placeholder="タグを検索..." oninput="searchTags()">
+                <input type="text" id="tagSearchInput" placeholder="タグを検索..." oninput="searchTags()" style="width: 80%;">
             </div>
             
             <!-- 選択中のタグ -->
@@ -255,12 +257,19 @@ function saveTags() {
     formData.append('tag_ids', selectedTagIds.join(','));
     formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
     
+    console.log('Saving tags:', selectedTagIds);
+    console.log('Wordbook ID:', wordbookId);
+    
     fetch(`/wordbooks/${wordbookId}/tags/`, {
         method: 'POST',
         body: formData
     })
-    .then(res => res.json())
+    .then(res => {
+        console.log('Response status:', res.status);
+        return res.json();
+    })
     .then(data => {
+        console.log('Response data:', data);
         if (data.ok) {
             alert('タグを保存しました');
             location.reload();

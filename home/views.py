@@ -71,15 +71,57 @@ def logout_view(request):
 
 # ホームページ（単語帳一覧）
 def wordbook_list(request):
-    # 人気の単語帳（全ユーザーの単語帳から取得）
-    popular_wordbooks = WordBook.objects.all()[:6]
+    # 検索パラメータを取得
+    search_query = request.GET.get('q', '').strip()  # キーワード検索
+    tag_name = request.GET.get('tag')  # タグ名での検索
+    tag_ids = request.GET.get('tags')  # タグIDでの検索（複数対応）
     
-    # 既存の単語帳（全ユーザーの単語帳）
-    existing_wordbooks = WordBook.objects.all()[:6]
+    # 基本のクエリセット
+    wordbooks_base = WordBook.objects.all()
+    
+    # キーワード検索
+    if search_query:
+        wordbooks_base = wordbooks_base.filter(
+            Q(title__icontains=search_query) | 
+            Q(description__icontains=search_query) |
+            Q(cards__front_text__icontains=search_query) |
+            Q(cards__back_text__icontains=search_query)
+        ).distinct()
+    
+    # タグでフィルタリング
+    selected_tags = []
+    if tag_name:
+        # タグ名で検索（単一）
+        wordbooks_base = wordbooks_base.filter(tags__name=tag_name).distinct()
+        selected_tags = Tag.objects.filter(name=tag_name)
+    elif tag_ids:
+        # タグIDで検索（複数可能）
+        tag_id_list = [int(x) for x in tag_ids.split(',') if x.strip().isdigit()]
+        wordbooks_base = wordbooks_base.filter(tags__id__in=tag_id_list).distinct()
+        selected_tags = Tag.objects.filter(id__in=tag_id_list)
+    
+    # 人気の単語帳（いいね数順）
+    popular_wordbooks = wordbooks_base.annotate(like_count=Count('likes')).order_by('-like_count', '-created_at')[:6]
+    
+    # 既存の単語帳（新着順）
+    existing_wordbooks = wordbooks_base.annotate(like_count=Count('likes')).order_by('-created_at')[:6]
+    
+    # 人気タグTOP10を取得（使用数順）
+    popular_tags = Tag.objects.annotate(
+        usage_count=Count('wordbooks')
+    ).filter(usage_count__gt=0).order_by('-usage_count', 'name')[:10]
+    
+    # 選択中のタグ名のリストを作成
+    selected_tag_names = [tag.name for tag in selected_tags]
     
     context = {
-        'popular_wordbooks': WordBook.objects.annotate(like_count=Count('likes')).order_by('-like_count', '-created_at')[:6],
-        'existing_wordbooks': WordBook.objects.annotate(like_count=Count('likes')).order_by('-created_at')[:6]
+        'popular_wordbooks': popular_wordbooks,
+        'existing_wordbooks': existing_wordbooks,
+        'popular_tags': popular_tags,  # 人気タグを追加
+        'search_query': search_query,  # 検索クエリを追加
+        'selected_tags': selected_tags,  # 選択中のタグ
+        'selected_tag_names': selected_tag_names,  # 選択中のタグ名リスト
+        'is_filtered': bool(tag_name or tag_ids or search_query),  # フィルター中かどうか
     }
     return render(request, 'home/wordbook_list.html', context)
 

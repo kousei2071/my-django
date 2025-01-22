@@ -5,6 +5,34 @@
 {% block content %}
 {% load static %}
 <div class="container">
+    <!-- タグから探す -->
+    <section class="tags-section">
+        <h3 class="tags-title">🏷️ タグから探す</h3>
+        <div class="tags-scroll">
+            {% for tag in popular_tags %}
+                <a href="{% url 'wordbook_list' %}?tag={{ tag.name|urlencode }}" 
+                   class="tag-chip-search {% if tag.name in selected_tag_names %}active{% endif %}">
+                    {{ tag.name }}
+                    <span class="tag-count">{{ tag.usage_count }}</span>
+                </a>
+            {% endfor %}
+        </div>
+        {% if selected_tag_names or search_query %}
+            <a href="{% url 'wordbook_list' %}" class="btn-clear-filter">✕ フィルターをクリア</a>
+        {% endif %}
+    </section>
+
+    <!-- 検索結果の表示 -->
+    {% if is_filtered %}
+        <div class="filter-result-info">
+            <p>
+                {% if search_query %}「{{ search_query }}」{% endif %}
+                {% if selected_tags %}{% if search_query %}・{% endif %}「{% for tag in selected_tags %}{{ tag.name }}{% if not forloop.last %}、{% endif %}{% endfor %}」{% endif %}
+                で{{ popular_wordbooks.count|add:existing_wordbooks.count }}件の単語帳が見つかりました
+            </p>
+        </div>
+    {% endif %}
+
     <!-- 人気の単語帳セクション -->
     <section class="wordbook-section">
         <h2 class="section-title">人気の単語帳</h2>
