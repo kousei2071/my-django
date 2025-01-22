@@ -12,4 +12,5 @@ urlpatterns = [
     path('wordbooks/<int:pk>/', views.wordbook_detail, name='wordbook_detail'),
     path('wordbooks/<int:wordbook_pk>/cards/create/', views.wordcard_create, name='wordcard_create'),
     path('wordcards/<int:pk>/delete/', views.wordcard_delete, name='wordcard_delete'),
+    path('wordbooks/<int:pk>/like/', views.wordbook_like_toggle, name='wordbook_like'),
 ]

@@ -30,5 +30,15 @@ class WordCard(models.Model):
     class Meta:
         ordering = ['created_at']
     
+#いいね機能
+class wordBookLike(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='liked_wordbooks')
+    wordbook = models.ForeignKey(WordBook, on_delete=models.CASCADE, related_name='likes')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'wordbook')
+        indexes = [models.Index(fields=['user', 'wordbook'])]
+
     def __str__(self):
         return f"{self.front_text} - {self.back_text}"
