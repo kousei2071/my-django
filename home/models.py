@@ -55,6 +55,7 @@ class WordBook(models.Model):
     avatar_image = models.CharField(max_length=100, blank=True, null=True)
     background_color = models.CharField(max_length=7, blank=True, null=True)
     is_ai_generated = models.BooleanField(default=False)
+    is_public = models.BooleanField(default=False, verbose_name='公開する')
     
     # 管理者専用機能
     is_pinned = models.BooleanField(default=False, verbose_name='ピン留め（おすすめ）')
