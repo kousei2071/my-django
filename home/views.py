@@ -7,9 +7,10 @@ from django.db.models import Count, Q
 from django.urls import reverse
 from django.http import JsonResponse, HttpResponseForbidden
 from django.utils.text import slugify
-from .models import WordBook, WordCard, Tag, wordBookLike, WordBookBookmark, UserProfile
+from .models import WordBook, WordCard, Tag, wordBookLike, WordBookBookmark, UserProfile, WordCardStar
 import re
 import random
+import json
 
 AVATAR_IMAGES = [
     'account.png',
@@ -46,6 +47,7 @@ def mypage(request):
 
     nickname = request.user.first_name or request.user.username
     likes_total = wordBookLike.objects.filter(wordbook__user=request.user).count()
+    starred_cards_count = WordCardStar.objects.filter(user=request.user).count()
     
     # ユーザープロファイルを取得または作成
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
@@ -57,6 +59,7 @@ def mypage(request):
         'saved_wordbooks_count': saved_wordbooks_count,
         'nickname': nickname,
         'likes_total': likes_total,
+        'starred_cards_count': starred_cards_count,
         'avatar_image': user_profile.avatar_image,
         'background_color': user_profile.background_color,
     }
@@ -179,20 +182,54 @@ def wordbook_detail(request, pk):
     cards = wordbook.cards.all()
     
     likes_count = wordbook.likes.count()
-    user_has_liked = wordbook.likes.filter(user=request.user).exists()
-    user_has_bookmarked = wordbook.bookmarks.filter(user=request.user).exists()
+    user_has_liked = False
+    user_has_bookmarked = False
+    starred_card_ids = []
+    
+    if request.user.is_authenticated:
+        user_has_liked = wordbook.likes.filter(user=request.user).exists()
+        user_has_bookmarked = wordbook.bookmarks.filter(user=request.user).exists()
+        starred_card_ids = list(WordCardStar.objects.filter(user=request.user, wordcard__in=cards).values_list('wordcard_id', flat=True))
+    
     # 所有者なら常に編集ボタン（カード追加など）を表示
-    can_edit = wordbook.user == request.user
+    can_edit = wordbook.user == request.user if request.user.is_authenticated else False
     
     context = {
         'likes_count': likes_count,
         'user_has_liked': user_has_liked,
         'user_has_bookmarked': user_has_bookmarked,
+        'starred_card_ids': starred_card_ids,
         'can_edit': can_edit,
         'wordbook': wordbook,
         'cards': cards,
     }
     return render(request, 'home/wordbook_detail.html', context)
+
+
+@login_required
+def wordbook_play(request, pk):
+    wordbook = get_object_or_404(WordBook, pk=pk)
+    cards = list(wordbook.cards.all())
+
+    if len(cards) < 4:
+        messages.error(request, 'プレイするにはカードが4枚以上必要です')
+        return redirect('wordbook_detail', pk=pk)
+
+    cards_data = [
+        {
+            'id': c.id,
+            'front': c.front_text,
+            'back': c.back_text,
+        }
+        for c in cards
+    ]
+
+    context = {
+        'wordbook': wordbook,
+        'cards_json': json.dumps(cards_data, ensure_ascii=False),
+        'card_count': len(cards),
+    }
+    return render(request, 'home/wordbook_play.html', context)
 
 # 単語カード作成
 @login_required
@@ -211,10 +248,33 @@ def wordcard_create(request, wordbook_pk):
         messages.success(request, '単語カードを追加しました。続けて追加できます。')
         return redirect('wordcard_create', wordbook_pk=wordbook.pk)
     
+    starred_cards = WordCardStar.objects.filter(user=request.user).select_related('wordcard')
+    
     context = {
         'wordbook': wordbook,
+        'starred_cards': starred_cards,
     }
     return render(request, 'home/wordcard_create.html', context)
+
+@login_required
+def import_starred_card(request, wordbook_pk, card_id):
+    wordbook = get_object_or_404(WordBook, pk=wordbook_pk, user=request.user)
+    original_card = get_object_or_404(WordCard, id=card_id)
+    
+    # 星をつけているか確認
+    if not WordCardStar.objects.filter(user=request.user, wordcard=original_card).exists():
+        return HttpResponseForbidden("このカードはスターされていません。")
+        
+    # コピーを作成
+    WordCard.objects.create(
+        wordbook=wordbook,
+        front_text=original_card.front_text,
+        back_text=original_card.back_text,
+        image=original_card.image
+    )
+    
+    messages.success(request, f'「{original_card.front_text}」をインポートしました。')
+    return redirect('wordcard_create', wordbook_pk=wordbook_pk)
 
 # 単語カード削除
 @login_required
@@ -479,3 +539,15 @@ def upload_custom_avatar(request):
         'ok': True,
         'avatar_url': user_profile.get_avatar_url()
     })
+@login_required
+def toggle_star(request, card_id):
+    card = get_object_or_404(WordCard, id=card_id)
+    star, created = WordCardStar.objects.get_or_create(user=request.user, wordcard=card)
+    
+    if not created:
+        star.delete()
+        is_starred = False
+    else:
+        is_starred = True
+        
+    return JsonResponse({'is_starred': is_starred})

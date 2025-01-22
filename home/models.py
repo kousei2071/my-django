@@ -118,3 +118,17 @@ class WordBookBookmark(models.Model):
 
     def __str__(self):
         return f"{self.user.username} -> {self.wordbook.title}"
+
+
+# 単語カードのスター（お気に入り）機能
+class WordCardStar(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='starred_cards')
+    wordcard = models.ForeignKey(WordCard, on_delete=models.CASCADE, related_name='stars')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'wordcard')
+        indexes = [models.Index(fields=['user', 'wordcard'])]
+
+    def __str__(self):
+        return f"{self.user.username} starred {self.wordcard.front_text}"

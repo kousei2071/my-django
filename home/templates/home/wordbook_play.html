@@ -1,0 +1,268 @@
+{% extends 'home/base.html' %}
+{% load static %}
+
+{% block title %}クイズプレイ - {{ wordbook.title }}{% endblock %}
+
+{% block content %}
+<div class="container quiz-page">
+    <div class="quiz-page-header">
+        <div class="quiz-page-meta">
+            <span class="quiz-wordbook-title">{{ wordbook.title }}</span>
+            <span class="quiz-card-count">カード: {{ card_count }}枚</span>
+        </div>
+    </div>
+
+    <div id="quizNotice" class="quiz-section" style="display: none;"></div>
+
+    <div id="quizPlay" class="quiz-section">
+        <div class="quiz-header">
+            <div class="quiz-timer">
+                <svg viewBox="0 0 120 120">
+                    <circle cx="60" cy="60" r="54" class="timer-bg"></circle>
+                    <circle cx="60" cy="60" r="54" class="timer-progress" id="quizTimerProgress"></circle>
+                </svg>
+                <span id="quizTimerLabel" class="timer-label">15</span>
+            </div>
+            <div class="quiz-progress">
+                <div class="quiz-count" id="quizCount">1/10</div>
+            </div>
+        </div>
+
+        <div class="quiz-question" id="quizQuestion">question</div>
+
+        <div class="quiz-options" id="quizOptions"></div>
+    </div>
+
+    <div id="quizFeedback" class="quiz-section" style="display: none;">
+        <div class="quiz-feedback-card">
+            <h3 id="quizFeedbackTitle">正解</h3>
+            <p id="quizFeedbackAnswer" class="quiz-feedback-answer"></p>
+            <button type="button" class="btn btn-primary" onclick="nextQuizQuestion()">次の問題へ</button>
+        </div>
+    </div>
+
+    <div id="quizResult" class="quiz-section" style="display: none;">
+        <h2>結果</h2>
+        <p id="quizScore" class="quiz-score">0 / 0</p>
+        <div id="quizMistList" class="quiz-miss-list"></div>
+        <div class="quiz-result-actions">
+            <button type="button" class="btn btn-primary" onclick="restartPlay('all')">もう一度プレイ</button>
+            <button type="button" id="reviewReplayBtn" class="btn btn-secondary" onclick="restartPlay('review')">間違えた問題だけ復習</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const quizWordbookId = {{ wordbook.pk }};
+const quizCards = JSON.parse("{{ cards_json|escapejs }}");
+const urlParams = new URLSearchParams(window.location.search);
+const modeParam = urlParams.get('mode') || 'all';
+const difficultyParam = urlParams.get('difficulty') || '15';
+
+const quizState = {
+    questions: [],
+    currentIndex: 0,
+    correctCount: 0,
+    mistakes: [],
+    mode: modeParam,
+    timeLimit: difficultyParam === 'unlimited' ? null : parseInt(difficultyParam, 10) || 15,
+    timerId: null
+};
+
+const noticeBox = document.getElementById('quizNotice');
+
+function initQuiz() {
+    const source = quizState.mode === 'review' ? loadStoredMistakes() : quizCards;
+    if (source.length < 4) {
+        showNotice(quizState.mode === 'review'
+            ? '間違えた問題が4件以上あるときに復習できます。通常プレイで問題を解いてください。'
+            : 'プレイするにはカードが4枚以上必要です。');
+        return;
+    }
+    quizState.questions = shuffleArray([...source]);
+    quizState.currentIndex = 0;
+    quizState.correctCount = 0;
+    quizState.mistakes = [];
+    setSection('quizPlay');
+    renderQuizQuestion();
+}
+
+function showNotice(text) {
+    noticeBox.style.display = 'block';
+    noticeBox.innerHTML = `
+        <div class="quiz-feedback-card" style="text-align:center;">
+            <p class="quiz-feedback-answer">${text}</p>
+            <div class="quiz-result-actions" style="justify-content:center;">
+                <a class="btn btn-primary" href="{% url 'wordbook_detail' wordbook.pk %}">単語帳に戻る</a>
+                <a class="btn btn-secondary" href="{% url 'wordbook_play' wordbook.pk %}?mode=all">通常プレイに戻る</a>
+            </div>
+        </div>`;
+    setSection('quizNotice');
+}
+
+function setSection(section) {
+    ['quizNotice','quizPlay','quizFeedback','quizResult'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = (id === section) ? 'block' : 'none';
+    });
+}
+
+function renderQuizQuestion() {
+    const q = quizState.questions[quizState.currentIndex];
+    const options = buildOptions(q);
+    if (!options) {
+        showNotice('選択肢を生成できませんでした。カード数を確認してください。');
+        return;
+    }
+    document.getElementById('quizQuestion').textContent = q.front;
+    document.getElementById('quizCount').textContent = `${quizState.currentIndex + 1}/${quizState.questions.length}`;
+
+    const optsContainer = document.getElementById('quizOptions');
+    optsContainer.innerHTML = '';
+    options.forEach((opt, index) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `quiz-option ${index % 2 === 0 ? 'pink' : 'green'}`;
+        btn.textContent = opt.back;
+        btn.onclick = () => handleQuizAnswer(opt, false);
+        optsContainer.appendChild(btn);
+    });
+
+    startQuizTimer();
+}
+
+function handleQuizAnswer(selectedOption, timedOut) {
+    stopQuizTimer();
+    const current = quizState.questions[quizState.currentIndex];
+    const isCorrect = !timedOut && selectedOption && selectedOption.id === current.id;
+
+    if (isCorrect) {
+        quizState.correctCount += 1;
+        showQuizFeedback('正解', '');
+    } else {
+        quizState.mistakes.push(current);
+        const title = timedOut ? '時間切れ' : '不正解';
+        showQuizFeedback(title, `正しい答え: ${current.back}`);
+    }
+}
+
+function nextQuizQuestion() {
+    quizState.currentIndex += 1;
+    if (quizState.currentIndex >= quizState.questions.length) {
+        showQuizResult();
+    } else {
+        setSection('quizPlay');
+        renderQuizQuestion();
+    }
+}
+
+function showQuizFeedback(title, answerText) {
+    document.getElementById('quizFeedbackTitle').textContent = title;
+    document.getElementById('quizFeedbackAnswer').textContent = answerText;
+    setSection('quizFeedback');
+}
+
+function showQuizResult() {
+    saveMistakes();
+    document.getElementById('quizScore').textContent = `${quizState.correctCount} / ${quizState.questions.length}`;
+
+    const missList = document.getElementById('quizMistList');
+    missList.innerHTML = '';
+    if (quizState.mistakes.length === 0) {
+        missList.innerHTML = '<p class="quiz-hint">全問正解！すばらしいです。</p>';
+    } else {
+        missList.innerHTML = '<h4>間違えた問題</h4>';
+        quizState.mistakes.forEach(m => {
+            const item = document.createElement('div');
+            item.className = 'quiz-miss-item';
+            item.innerHTML = `<div class="miss-front">${m.front}</div><div class="miss-back">${m.back}</div>`;
+            missList.appendChild(item);
+        });
+    }
+
+    const reviewReplayBtn = document.getElementById('reviewReplayBtn');
+    reviewReplayBtn.disabled = quizState.mistakes.length < 4;
+
+    setSection('quizResult');
+}
+
+function restartPlay(mode) {
+    const difficulty = difficultyParam || '15';
+    if (mode === 'review') {
+        window.location.href = `{% url 'wordbook_play' wordbook.pk %}?mode=review&difficulty=${difficulty}`;
+    } else {
+        window.location.href = `{% url 'wordbook_play' wordbook.pk %}?mode=all&difficulty=${difficulty}`;
+    }
+}
+
+function startQuizTimer() {
+    stopQuizTimer();
+    const label = document.getElementById('quizTimerLabel');
+    const circle = document.getElementById('quizTimerProgress');
+
+    if (!quizState.timeLimit) {
+        label.textContent = '∞';
+        if (circle) circle.style.strokeDashoffset = '0';
+        return;
+    }
+
+    const duration = quizState.timeLimit;
+    const start = Date.now();
+    const circumference = 2 * Math.PI * 54;
+    circle.style.strokeDasharray = circumference;
+
+    quizState.timerId = setInterval(() => {
+        const elapsed = (Date.now() - start) / 1000;
+        const remaining = Math.max(0, duration - elapsed);
+        label.textContent = Math.ceil(remaining);
+        const progress = remaining / duration;
+        circle.style.strokeDashoffset = circumference * (1 - progress);
+        if (remaining <= 0.05) {
+            stopQuizTimer();
+            handleQuizAnswer(null, true);
+        }
+    }, 100);
+}
+
+function stopQuizTimer() {
+    if (quizState.timerId) {
+        clearInterval(quizState.timerId);
+        quizState.timerId = null;
+    }
+}
+
+function buildOptions(current) {
+    const others = shuffleArray(quizCards.filter(c => c.id !== current.id));
+    if (others.length < 3) return null;
+    const options = [current, ...others.slice(0, 3)];
+    return shuffleArray(options);
+}
+
+function shuffleArray(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+function loadStoredMistakes() {
+    try {
+        const raw = localStorage.getItem(`quizMistakes_${quizWordbookId}`);
+        return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveMistakes() {
+    try {
+        localStorage.setItem(`quizMistakes_${quizWordbookId}`, JSON.stringify(quizState.mistakes));
+    } catch (e) {
+        // localStorage unavailable; skip silently
+    }
+}
+
+initQuiz();
+</script>
+{% endblock %}

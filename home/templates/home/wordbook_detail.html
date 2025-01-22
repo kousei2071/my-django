@@ -33,6 +33,7 @@
             
             <div class="like-action action-buttons">
             {% if user.is_authenticated %}
+                <button type="button" class="btn btn-primary btn-play" onclick="openQuizModal()">プレイする</button>
                 <form method="post" action="{% url 'wordbook_like' wordbook.pk %}">
                     {% csrf_token %}
                      <input type="hidden" name="next" value="{{ request.get_full_path }}">
@@ -48,6 +49,7 @@
                     </button>
                  </form>
               {% else %}
+                 <button type="button" class="btn btn-primary btn-play" onclick="openQuizModal()">プレイする</button>
                  <a class="btn btn-secondary" href="{% url 'login' %}?next={{ request.get_full_path }}">ログインしていいね・保存</a>
             {% endif %}
         </div>
@@ -65,6 +67,13 @@
             <div class="wordcard-grid">
                 {% for card in cards %}
                     <div class="wordcard">
+                        <div class="wordcard-star-container">
+                            <button class="btn-star {% if card.id in starred_card_ids %}is-starred{% endif %}" 
+                                    onclick="toggleStar({{ card.id }}, this)" 
+                                    title="星をつける">
+                                <img src="{% static 'home/images/star.png' %}" alt="star" class="star-icon-img">
+                            </button>
+                        </div>
                         <div class="wordcard-front">
                             <p class="word-text">{{ card.front_text }}</p>
                         </div>
@@ -86,6 +95,33 @@
         {% else %}
             <p class="empty-message">まだ単語カードがありません。単語カードを追加しましょう！</p>
         {% endif %}
+    </div>
+</div>
+
+<!-- クイズ開始モーダル（スタートのみ） -->
+<div id="quizModal" class="quiz-modal" aria-hidden="true" style="display: none;">
+    <div class="quiz-modal-overlay" role="dialog" aria-modal="true">
+        <div class="quiz-modal-body">
+            <button class="quiz-close" type="button" aria-label="閉じる" onclick="closeQuizModal()">&times;</button>
+
+            <div id="quizSetup" class="quiz-section" style="display: block;">
+                <h2>クイズをプレイ</h2>
+                <p class="quiz-sub">単語帳からランダムに4択で出題します（カード4枚以上が必要です）</p>
+
+                <div class="quiz-setup-row">
+                    <label for="quizDifficulty">難易度（制限時間）</label>
+                    <select id="quizDifficulty" class="quiz-select">
+                        <option value="15">ふつう（15秒）</option>
+                        <option value="5">むずかしい（5秒）</option>
+                        <option value="unlimited">練習（制限なし）</option>
+                    </select>
+                </div>
+
+                <div class="quiz-setup-actions">
+                    <button type="button" class="btn btn-primary" onclick="goPlayPage()">スタート</button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -237,11 +273,6 @@ function createTag() {
             if (!selectedTagIds.includes(data.id)) {
                 addTag(data.id);
             }
-            if (data.created) {
-                alert('新しいタグを作成しました: ' + data.name);
-            } else {
-                alert('既存のタグを追加しました: ' + data.name);
-            }
         } else if (data.error) {
             alert('エラー: ' + data.error.message);
         }
@@ -271,7 +302,6 @@ function saveTags() {
     .then(data => {
         console.log('Response data:', data);
         if (data.ok) {
-            alert('タグを保存しました');
             location.reload();
         } else if (data.error) {
             alert('エラー: ' + data.error.message);
@@ -303,7 +333,6 @@ function deleteTag(tagId, event) {
     .then(res => res.json())
     .then(data => {
         if (data.ok) {
-            alert('タグを削除しました');
             loadTags();
         } else if (data.error) {
             alert('エラー: ' + data.error.message);
@@ -314,15 +343,64 @@ function deleteTag(tagId, event) {
         alert('タグの削除に失敗しました');
     });
 }
+</script>
+{% endif %}
+
+<script>
+function toggleStar(cardId, btn) {
+    {% if not user.is_authenticated %}
+        window.location.href = "{% url 'login' %}?next={{ request.get_full_path }}";
+        return;
+    {% endif %}
+
+    fetch(`/wordcards/${cardId}/star/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.is_starred) {
+            btn.classList.add('is-starred');
+        } else {
+            btn.classList.remove('is-starred');
+        }
+    })
+    .catch(err => console.error('Star toggle error:', err));
+}
 
 // モーダルの外側をクリックで閉じる
 window.onclick = function(event) {
     const modal = document.getElementById('tagModal');
-    if (event.target === modal) {
+    if (modal && event.target === modal) {
         closeTagModal();
     }
 }
 </script>
-{% endif %}
+
+<script>
+const quizWordbookId = {{ wordbook.pk }};
+const quizCardCount = {{ cards.count }};
+
+function openQuizModal() {
+    if (quizCardCount < 4) {
+        alert('プレイするにはカードが4枚以上必要です');
+        return;
+    }
+    document.getElementById('quizModal').style.display = 'block';
+}
+
+function closeQuizModal() {
+    document.getElementById('quizModal').style.display = 'none';
+}
+
+function goPlayPage() {
+    const difficulty = document.getElementById('quizDifficulty').value;
+    const base = '{% url "wordbook_play" wordbook.pk %}';
+    window.location.href = `${base}?mode=all&difficulty=${difficulty}`;
+}
+</script>
 
 {% endblock %}
