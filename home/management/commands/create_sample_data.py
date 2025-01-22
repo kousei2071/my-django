@@ -1,11 +1,43 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from home.models import WordBook, WordCard
+from home.models import WordBook, WordCard, Tag
+from django.utils.text import slugify
 
 class Command(BaseCommand):
     help = 'Create sample wordbooks and wordcards'
 
     def handle(self, *args, **options):
+        # 既定タグ
+        default_tags = [
+            {'name': '英検3級', 'slug': 'eiken-3kyu'},
+            {'name': '英検準2級', 'slug': 'eiken-jun2'},
+            {'name': '英検2級', 'slug': 'eiken-2kyu'},
+            {'name': '英検準1級', 'slug': 'eiken-jun1'},
+            {'name': 'TOEIC600', 'slug': 'toeic-600'},
+            {'name': 'TOEIC800', 'slug': 'toeic-800'},
+            {'name': 'TOEIC900', 'slug': 'toeic-900'},
+            {'name': '大学受験', 'slug': 'university-exam'},
+            {'name': '高校受験', 'slug': 'high-school-exam'},
+            {'name': '中学英語', 'slug': 'junior-high'},
+            {'name': '日常会話', 'slug': 'daily-conversation'},
+            {'name': 'ビジネス英語', 'slug': 'business-english'},
+            {'name': '旅行英語', 'slug': 'travel-english'},
+            {'name': 'IT用語', 'slug': 'it-terms'},
+            {'name': '医療英語', 'slug': 'medical-english'},
+            {'name': '基礎', 'slug': 'basic'},
+            {'name': '初級', 'slug': 'beginner'},
+            {'name': '中級', 'slug': 'intermediate'},
+            {'name': '上級', 'slug': 'advanced'},
+            {'name': '単語', 'slug': 'vocabulary'},
+            {'name': '熟語', 'slug': 'idioms'},
+            {'name': '文法', 'slug': 'grammar'},
+            
+        ]
+        for item in default_tags:
+            Tag.objects.get_or_create(name=item['name'], defaults={
+                'slug': item['slug']
+            })
+
         # サンプルユーザーを作成（既に存在する場合はスキップ）
         sample_users = []
         for i in range(1, 6):

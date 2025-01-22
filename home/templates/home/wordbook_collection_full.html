@@ -1,0 +1,29 @@
+{% extends 'home/base.html' %}
+
+{% block title %}{{ title }} - TANKORE{% endblock %}
+
+{% block content %}
+{% load static %}
+<div class="container">
+    <div class="section-header">
+        <h2>{{ title }}</h2>
+        <a href="{% url 'mypage' %}" class="btn btn-secondary">マイページに戻る</a>
+    </div>
+
+    <div class="wordbook-grid">
+        {% for wordbook in wordbooks %}
+            <a href="{% url 'wordbook_detail' wordbook.pk %}{% if from_source == 'mypage' %}?from=mypage{% endif %}" class="wordbook-card">
+                <div class="wordbook-image">
+                    <div class="image-placeholder">画像</div>
+                </div>
+                <div class="wordbook-info">
+                    <h3>{{ wordbook.title }}</h3>
+                    <p class="card-count">{{ wordbook.card_count }}枚・<img src="{% static 'home/images/like-3d.png' %}" alt="いいね" class="like-icon"> {{ wordbook.like_count|default:0 }}</p>
+                </div>
+            </a>
+        {% empty %}
+            <p class="empty-message">表示できる単語帳がありません。</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
