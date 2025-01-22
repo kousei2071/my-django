@@ -74,12 +74,16 @@ class WordBook(models.Model):
 
     def get_avatar_url(self):
         """単語帳固有のアバター画像があればそれを返し、なければ作成者のプロファイル画像を返す"""
+        if self.is_ai_generated:
+            return '/static/home/images/robot.svg'
         if self.avatar_image:
             return f'/static/home/images/django icon/{self.avatar_image}'
         return self.user.profile.get_avatar_url()
 
     def get_background_color(self):
         """単語帳固有の背景色があればそれを返し、なければ作成者のプロファイル背景色を返す"""
+        if self.is_ai_generated:
+            return '#9e9e9e'
         if self.background_color:
             return self.background_color
         return self.user.profile.background_color
@@ -136,3 +140,17 @@ class WordCardStar(models.Model):
 
     def __str__(self):
         return f"{self.user.username} starred {self.wordcard.front_text}"
+
+
+# ユーザーフォロー機能
+class UserFollow(models.Model):
+    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name='following')
+    following = models.ForeignKey(User, on_delete=models.CASCADE, related_name='followers')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('follower', 'following')
+        indexes = [models.Index(fields=['follower', 'following'])]
+
+    def __str__(self):
+        return f"{self.follower.username} follows {self.following.username}"

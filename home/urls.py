@@ -36,4 +36,9 @@ urlpatterns = [
     path('wordcards/<int:pk>/delete/', views.wordcard_delete, name='wordcard_delete'),
     path('wordcards/<int:card_id>/star/', views.toggle_star, name='wordcard_star_toggle'),
     path('wordbooks/<int:pk>/like/', views.wordbook_like_toggle, name='wordbook_like'),
+    # User Profile & Follow
+    path('users/<str:username>/', views.user_profile, name='user_profile'),
+    path('users/<str:username>/follow/', views.user_follow_toggle, name='user_follow_toggle'),
+    path('users/<str:username>/following/', views.user_following_list, name='user_following_list'),
+    path('users/<str:username>/followers/', views.user_followers_list, name='user_followers_list'),
 ]

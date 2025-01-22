@@ -1,0 +1,459 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}{{ profile_user.username }}のプロフィール - TANKORE{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <!-- プロフィールヘッダー -->
+    <div class="profile-header">
+        <div class="profile-avatar-section">
+            <img src="{{ user_profile.get_avatar_url }}" alt="{{ profile_user.username }}" class="profile-avatar-large">
+        </div>
+        
+        <div class="profile-info-section">
+            <div class="profile-username-row">
+                <h1 class="profile-username">{{ profile_user.username }}</h1>
+                {% if user.is_authenticated and user != profile_user %}
+                <button class="follow-btn {% if is_following %}following{% endif %}" 
+                        data-username="{{ profile_user.username }}"
+                        onclick="toggleFollow(this)">
+                    {% if is_following %}
+                        <i class="fas fa-user-check"></i> フォロー中
+                    {% else %}
+                        <i class="fas fa-user-plus"></i> フォロー
+                    {% endif %}
+                </button>
+                {% endif %}
+            </div>
+            
+            {% if profile_user.first_name %}
+            <p class="profile-display-name">{{ profile_user.first_name }}</p>
+            {% endif %}
+            
+            <div class="profile-stats">
+                <div class="profile-stat-item">
+                    <span class="stat-number">{{ wordbooks.count }}</span>
+                    <span class="stat-label">単語帳</span>
+                </div>
+                <div class="profile-stat-item">
+                    <a href="{% url 'user_followers_list' profile_user.username %}" class="stat-link">
+                        <span class="stat-number" id="followers-count">{{ followers_count }}</span>
+                        <span class="stat-label">フォロワー</span>
+                    </a>
+                </div>
+                <div class="profile-stat-item">
+                    <a href="{% url 'user_following_list' profile_user.username %}" class="stat-link">
+                        <span class="stat-number">{{ following_count }}</span>
+                        <span class="stat-label">フォロー中</span>
+                    </a>
+                </div>
+                <div class="profile-stat-item">
+                    <span class="stat-number">{{ total_likes }}</span>
+                    <span class="stat-label">いいね獲得</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 単語帳一覧 -->
+    <div class="profile-wordbooks-section">
+        <h2 class="section-title">
+            {% if user == profile_user %}
+                自分の単語帳
+            {% else %}
+                公開中の単語帳
+            {% endif %}
+        </h2>
+        
+        {% if wordbooks %}
+        <div class="wordbook-grid">
+            {% for wordbook in wordbooks %}
+            <div class="wordbook-card" data-wordbook-id="{{ wordbook.id }}">
+                <a href="{% url 'wordbook_detail' wordbook.pk %}" class="wordbook-card-link">
+                    <div class="wordbook-card-header" style="background-color: {{ wordbook.get_background_color }};">
+                        <img src="{{ wordbook.get_avatar_url }}" alt="Avatar" class="wordbook-avatar">
+                        <div class="wordbook-info">
+                            <h3 class="wordbook-title">{{ wordbook.title }}</h3>
+                            <p class="wordbook-meta">{{ wordbook.card_count }}枚のカード</p>
+                        </div>
+                    </div>
+                </a>
+                
+                <div class="wordbook-card-footer">
+                    <div class="wordbook-actions">
+                        <button class="action-btn like-btn {% if wordbook.id in liked_wordbook_ids %}liked{% endif %}" 
+                                data-wordbook-id="{{ wordbook.id }}"
+                                onclick="toggleLike(event, this)">
+                            <i class="{% if wordbook.id in liked_wordbook_ids %}fas{% else %}far{% endif %} fa-heart"></i>
+                            <span class="like-count">{{ wordbook.like_count }}</span>
+                        </button>
+                        
+                        <button class="action-btn bookmark-btn {% if wordbook.id in bookmarked_wordbook_ids %}bookmarked{% endif %}" 
+                                data-wordbook-id="{{ wordbook.id }}"
+                                onclick="toggleBookmark(event, this)">
+                            <i class="{% if wordbook.id in bookmarked_wordbook_ids %}fas{% else %}far{% endif %} fa-bookmark"></i>
+                        </button>
+                    </div>
+                    
+                    {% if not wordbook.is_public %}
+                    <span class="private-badge">
+                        <i class="fas fa-lock"></i> 非公開
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>まだ単語帳がありません</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.profile-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.profile-header {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.profile-avatar-section {
+    flex-shrink: 0;
+}
+
+.profile-avatar-large {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #e3d7a3;
+}
+
+.profile-info-section {
+    flex: 1;
+}
+
+.profile-username-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.profile-username {
+    font-size: 2rem;
+    margin: 0;
+}
+
+.profile-display-name {
+    color: #666;
+    margin-bottom: 1rem;
+}
+
+.follow-btn {
+    padding: 0.5rem 1.5rem;
+    border: 2px solid #e3d7a3;
+    background: white;
+    border-radius: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.follow-btn:hover {
+    background: #e3d7a3;
+}
+
+.follow-btn.following {
+    background: #e3d7a3;
+    border-color: #d4c893;
+}
+
+.profile-stats {
+    display: flex;
+    gap: 2rem;
+    margin-top: 1.5rem;
+}
+
+.profile-stat-item {
+    text-align: center;
+}
+
+.stat-link {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.stat-link:hover {
+    color: #e3d7a3;
+}
+
+.stat-number {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.stat-label {
+    display: block;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.profile-wordbooks-section {
+    margin-top: 2rem;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e3d7a3;
+}
+
+.wordbook-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.wordbook-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.wordbook-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.wordbook-card-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.wordbook-card-header {
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.wordbook-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.wordbook-info {
+    flex: 1;
+}
+
+.wordbook-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+}
+
+.wordbook-meta {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.wordbook-card-footer {
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #eee;
+}
+
+.wordbook-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: color 0.2s;
+}
+
+.action-btn:hover {
+    color: #333;
+}
+
+.like-btn.liked {
+    color: #ff6b6b;
+}
+
+.bookmark-btn.bookmarked {
+    color: #e3d7a3;
+}
+
+.private-badge {
+    color: #999;
+    font-size: 0.9rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #999;
+}
+
+@media (max-width: 768px) {
+    .profile-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .profile-stats {
+        justify-content: center;
+    }
+    
+    .wordbook-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+function toggleFollow(button) {
+    const username = button.dataset.username;
+    const isFollowing = button.classList.contains('following');
+    
+    fetch(`/users/${username}/follow/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (data.is_following) {
+                button.classList.add('following');
+                button.innerHTML = '<i class="fas fa-user-check"></i> フォロー中';
+            } else {
+                button.classList.remove('following');
+                button.innerHTML = '<i class="fas fa-user-plus"></i> フォロー';
+            }
+            
+            // フォロワー数を更新
+            const followersCount = document.getElementById('followers-count');
+            if (followersCount) {
+                followersCount.textContent = data.followers_count;
+            }
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function toggleLike(event, button) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const wordbookId = button.dataset.wordbookId;
+    
+    fetch(`/wordbooks/${wordbookId}/like/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const icon = button.querySelector('i');
+            const count = button.querySelector('.like-count');
+            
+            if (data.liked) {
+                button.classList.add('liked');
+                icon.classList.remove('far');
+                icon.classList.add('fas');
+            } else {
+                button.classList.remove('liked');
+                icon.classList.remove('fas');
+                icon.classList.add('far');
+            }
+            
+            count.textContent = data.like_count;
+        }
+    });
+}
+
+function toggleBookmark(event, button) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const wordbookId = button.dataset.wordbookId;
+    
+    fetch(`/wordbooks/${wordbookId}/bookmark/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const icon = button.querySelector('i');
+            
+            if (data.bookmarked) {
+                button.classList.add('bookmarked');
+                icon.classList.remove('far');
+                icon.classList.add('fas');
+            } else {
+                button.classList.remove('bookmarked');
+                icon.classList.remove('fas');
+                icon.classList.add('far');
+            }
+        }
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

@@ -2704,3 +2704,52 @@ body {
         max-height: none;
     }
 }
+
+/* 作成者情報 */
+.creator-info {
+    margin-bottom: 1rem;
+}
+
+.creator-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: #666;
+    transition: color 0.2s;
+}
+
+.creator-link:hover {
+    color: #333;
+}
+
+.creator-avatar-small {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e3d7a3;
+}
+
+.creator-username {
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.ai-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.ai-badge i {
+    font-size: 1.1rem;
+}
+

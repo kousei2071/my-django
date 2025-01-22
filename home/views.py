@@ -8,7 +8,7 @@ from django.db.models import Count, Q
 from django.urls import reverse
 from django.http import JsonResponse, HttpResponseForbidden, Http404
 from django.utils.text import slugify
-from .models import WordBook, WordCard, Tag, wordBookLike, WordBookBookmark, UserProfile, WordCardStar
+from .models import WordBook, WordCard, Tag, wordBookLike, WordBookBookmark, UserProfile, WordCardStar, UserFollow
 import re
 import random
 import json
@@ -710,3 +710,178 @@ def admin_toggle_pin(request, pk):
         'success': True,
         'is_pinned': wordbook.is_pinned
     })
+
+
+# ========== ユーザープロフィール関連 ==========
+
+def user_profile(request, username):
+    """ユーザープロフィールページ"""
+    profile_user = get_object_or_404(User, username=username)
+    
+    # AI専用ユーザーの場合はプロフィールを表示しない
+    if profile_user.username == 'AI' or WordBook.objects.filter(user=profile_user, is_ai_generated=True).exists():
+        messages.error(request, 'AIが作成した単語帳にはプロフィールページがありません。')
+        return redirect('wordbook_list')
+    
+    user_profile, created = UserProfile.objects.get_or_create(user=profile_user)
+    
+    # そのユーザーの公開単語帳を取得
+    if request.user.is_authenticated and (request.user == profile_user or is_admin_user(request.user)):
+        # 本人または管理者の場合は非公開も表示
+        wordbooks = WordBook.objects.filter(user=profile_user).annotate(
+            like_count=Count('likes'),
+            bookmark_count=Count('bookmarks')
+        ).order_by('-created_at')
+    else:
+        # 他のユーザーの場合は公開のみ
+        wordbooks = WordBook.objects.filter(
+            user=profile_user,
+            is_public=True
+        ).annotate(
+            like_count=Count('likes'),
+            bookmark_count=Count('bookmarks')
+        ).order_by('-created_at')
+    
+    # フォロー状態を確認
+    is_following = False
+    if request.user.is_authenticated and request.user != profile_user:
+        is_following = UserFollow.objects.filter(
+            follower=request.user,
+            following=profile_user
+        ).exists()
+    
+    # フォロー数とフォロワー数
+    following_count = UserFollow.objects.filter(follower=profile_user).count()
+    followers_count = UserFollow.objects.filter(following=profile_user).count()
+    
+    # いいね総数
+    total_likes = wordBookLike.objects.filter(wordbook__user=profile_user).count()
+    
+    # 単語帳に対するいいねとブックマークの状態を取得
+    liked_wordbook_ids = []
+    bookmarked_wordbook_ids = []
+    if request.user.is_authenticated:
+        liked_wordbook_ids = list(wordBookLike.objects.filter(
+            user=request.user,
+            wordbook__in=wordbooks
+        ).values_list('wordbook_id', flat=True))
+        
+        bookmarked_wordbook_ids = list(WordBookBookmark.objects.filter(
+            user=request.user,
+            wordbook__in=wordbooks
+        ).values_list('wordbook_id', flat=True))
+    
+    context = {
+        'profile_user': profile_user,
+        'user_profile': user_profile,
+        'wordbooks': wordbooks,
+        'is_following': is_following,
+        'following_count': following_count,
+        'followers_count': followers_count,
+        'total_likes': total_likes,
+        'liked_wordbook_ids': liked_wordbook_ids,
+        'bookmarked_wordbook_ids': bookmarked_wordbook_ids,
+    }
+    
+    return render(request, 'home/user_profile.html', context)
+
+
+@login_required
+def user_follow_toggle(request, username):
+    """ユーザーのフォロー/アンフォローをトグル"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid method'}, status=405)
+    
+    target_user = get_object_or_404(User, username=username)
+    
+    # AI専用ユーザーはフォローできない
+    if target_user.username == 'AI' or WordBook.objects.filter(user=target_user, is_ai_generated=True).exists():
+        return JsonResponse({'error': 'AIユーザーはフォローできません'}, status=400)
+    
+    # 自分自身はフォローできない
+    if request.user == target_user:
+        return JsonResponse({'error': '自分自身をフォローできません'}, status=400)
+    
+    follow_obj = UserFollow.objects.filter(
+        follower=request.user,
+        following=target_user
+    ).first()
+    
+    if follow_obj:
+        # アンフォロー
+        follow_obj.delete()
+        is_following = False
+        action = 'unfollowed'
+    else:
+        # フォロー
+        UserFollow.objects.create(
+            follower=request.user,
+            following=target_user
+        )
+        is_following = True
+        action = 'followed'
+    
+    # 最新のフォロワー数を取得
+    followers_count = UserFollow.objects.filter(following=target_user).count()
+    
+    return JsonResponse({
+        'success': True,
+        'is_following': is_following,
+        'action': action,
+        'followers_count': followers_count
+    })
+
+
+@login_required
+def user_following_list(request, username):
+    """フォロー中のユーザー一覧"""
+    profile_user = get_object_or_404(User, username=username)
+    
+    # フォロー中のユーザーを取得
+    following_relations = UserFollow.objects.filter(
+        follower=profile_user
+    ).select_related('following', 'following__profile').order_by('-created_at')
+    
+    # 現在のユーザーがフォローしているユーザーのIDリスト
+    current_user_following_ids = []
+    if request.user.is_authenticated:
+        current_user_following_ids = list(UserFollow.objects.filter(
+            follower=request.user
+        ).values_list('following_id', flat=True))
+    
+    context = {
+        'profile_user': profile_user,
+        'following_relations': following_relations,
+        'current_user_following_ids': current_user_following_ids,
+        'is_own_profile': request.user == profile_user,
+    }
+    
+    return render(request, 'home/user_following_list.html', context)
+
+
+@login_required
+def user_followers_list(request, username):
+    """フォロワー一覧"""
+    profile_user = get_object_or_404(User, username=username)
+    
+    # フォロワーを取得
+    follower_relations = UserFollow.objects.filter(
+        following=profile_user
+    ).select_related('follower', 'follower__profile').order_by('-created_at')
+    
+    # 現在のユーザーがフォローしているユーザーのIDリスト
+    current_user_following_ids = []
+    if request.user.is_authenticated:
+        current_user_following_ids = list(UserFollow.objects.filter(
+            follower=request.user
+        ).values_list('following_id', flat=True))
+    
+    context = {
+        'profile_user': profile_user,
+        'follower_relations': follower_relations,
+        'current_user_following_ids': current_user_following_ids,
+        'is_own_profile': request.user == profile_user,
+    }
+    
+    return render(request, 'home/user_followers_list.html', context)
+

@@ -15,6 +15,22 @@
                 <div class="wordbook-detail-right">
                         <h1 class="wordbook-detail-title">{{ wordbook.title }}</h1>
             
+            <!-- 作成者情報 -->
+            {% if not wordbook.is_ai_generated %}
+            <div class="creator-info">
+                <a href="{% url 'user_profile' wordbook.user.username %}" class="creator-link">
+                    <img src="{{ wordbook.user.profile.get_avatar_url }}" alt="{{ wordbook.user.username }}" class="creator-avatar-small">
+                    <span class="creator-username">{{ wordbook.user.username }}</span>
+                </a>
+            </div>
+            {% else %}
+            <div class="creator-info">
+                <span class="ai-badge">
+                    <i class="fas fa-robot"></i> AI生成
+                </span>
+            </div>
+            {% endif %}
+            
             <!-- タグ表示エリア -->
             <div class="tags-display">
                 {% if wordbook.tags.all %}

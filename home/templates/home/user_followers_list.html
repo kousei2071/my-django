@@ -1,0 +1,233 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}{{ profile_user.username }}のフォロワー - TANKORE{% endblock %}
+
+{% block content %}
+<div class="follow-list-container">
+    <div class="follow-list-header">
+        <a href="{% url 'user_profile' profile_user.username %}" class="back-btn">
+            <i class="fas fa-arrow-left"></i> プロフィールに戻る
+        </a>
+        <h1>{{ profile_user.username }}のフォロワー</h1>
+    </div>
+    
+    {% if follower_relations %}
+    <div class="user-list">
+        {% for relation in follower_relations %}
+        <div class="user-item">
+            <a href="{% url 'user_profile' relation.follower.username %}" class="user-link">
+                <img src="{{ relation.follower.profile.get_avatar_url }}" alt="{{ relation.follower.username }}" class="user-avatar">
+                <div class="user-info">
+                    <h3 class="user-username">{{ relation.follower.username }}</h3>
+                    {% if relation.follower.first_name %}
+                    <p class="user-display-name">{{ relation.follower.first_name }}</p>
+                    {% endif %}
+                </div>
+            </a>
+            
+            {% if user.is_authenticated and user != relation.follower %}
+            <button class="follow-btn {% if relation.follower.id in current_user_following_ids %}following{% endif %}" 
+                    data-username="{{ relation.follower.username }}"
+                    onclick="toggleFollow(this)">
+                {% if relation.follower.id in current_user_following_ids %}
+                    <i class="fas fa-user-check"></i> フォロー中
+                {% else %}
+                    <i class="fas fa-user-plus"></i> フォロー
+                {% endif %}
+            </button>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-users fa-3x"></i>
+        <p>{% if is_own_profile %}まだフォロワーがいません{% else %}フォロワーはいません{% endif %}</p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.follow-list-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.follow-list-header {
+    margin-bottom: 2rem;
+}
+
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #666;
+    text-decoration: none;
+    margin-bottom: 1rem;
+    transition: color 0.2s;
+}
+
+.back-btn:hover {
+    color: #333;
+}
+
+.follow-list-header h1 {
+    font-size: 2rem;
+    margin: 0;
+}
+
+.user-list {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.user-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.2s;
+}
+
+.user-item:last-child {
+    border-bottom: none;
+}
+
+.user-item:hover {
+    background-color: #f9f9f9;
+}
+
+.user-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+    text-decoration: none;
+    color: inherit;
+}
+
+.user-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e3d7a3;
+}
+
+.user-info {
+    flex: 1;
+}
+
+.user-username {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.user-display-name {
+    margin: 0.25rem 0 0 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.follow-btn {
+    padding: 0.5rem 1.5rem;
+    border: 2px solid #e3d7a3;
+    background: white;
+    border-radius: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+.follow-btn:hover {
+    background: #e3d7a3;
+}
+
+.follow-btn.following {
+    background: #e3d7a3;
+    border-color: #d4c893;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #999;
+}
+
+.empty-state i {
+    margin-bottom: 1rem;
+}
+
+.empty-state p {
+    font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+    .follow-list-container {
+        padding: 1rem;
+    }
+    
+    .user-item {
+        padding: 1rem;
+    }
+    
+    .user-avatar {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .follow-btn {
+        padding: 0.4rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+</style>
+
+<script>
+function toggleFollow(button) {
+    const username = button.dataset.username;
+    
+    fetch(`/users/${username}/follow/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (data.is_following) {
+                button.classList.add('following');
+                button.innerHTML = '<i class="fas fa-user-check"></i> フォロー中';
+            } else {
+                button.classList.remove('following');
+                button.innerHTML = '<i class="fas fa-user-plus"></i> フォロー';
+            }
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}
