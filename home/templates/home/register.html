@@ -1,0 +1,47 @@
+{% extends 'home/base.html' %}
+
+{% block title %}会員登録 - TANKORE{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-box">
+        <h2 class="auth-title">新規会員登録</h2>
+        
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="id_username">ユーザー名</label>
+                {{ form.username }}
+            </div>
+            
+            <div class="form-group">
+                <label for="id_password1">パスワード</label>
+                {{ form.password1 }}
+            </div>
+            
+            <div class="form-group">
+                <label for="id_password2">パスワード（確認）</label>
+                {{ form.password2 }}
+            </div>
+            
+            {% if form.errors %}
+                <div class="error-message">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <button type="submit" class="btn btn-primary btn-block">登録する</button>
+        </form>
+        
+        <div class="auth-footer">
+            <p>既にアカウントをお持ちの方</p>
+            <a href="{% url 'login' %}" class="btn btn-outline">ログイン</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends 'home/base.html' %}
+
+{% block title %}ログイン - TANKORE{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-box">
+        <h2 class="auth-title">ログイン</h2>
+        
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="id_username">ログイン<br>メールアドレス</label>
+                <input type="text" name="username" id="id_username" class="form-input" placeholder="例: ms-card@ms-card.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="id_password">パスワード</label>
+                <input type="password" name="password" id="id_password" class="form-input" placeholder="パスワード" required>
+            </div>
+            
+            {% if form.errors %}
+                <div class="error-message">
+                    ユーザー名、またはパスワードが正しくありません。
+                </div>
+            {% endif %}
+            
+            <div class="form-actions">
+                <a href="#" class="forgot-password">パスワードを忘れた方</a>
+                <button type="submit" class="btn btn-primary btn-block">ログイン</button>
+            </div>
+        </form>
+        
+        <div class="auth-footer">
+            <p>新規会員登録はこちらから</p>
+            <a href="{% url 'register' %}" class="btn btn-outline">新規会員登録（無料）</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
