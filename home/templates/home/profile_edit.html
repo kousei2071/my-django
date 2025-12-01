@@ -1,0 +1,121 @@
+{% extends 'home/base.html' %}
+{% load static %}
+
+{% block title %}プロフィール編集 - TANKORE{% endblock %}
+
+{% block content %}
+<div class="edit-page-container">
+    <div class="edit-box">
+        <!-- ヘッダー -->
+        <div class="edit-header">
+            <h2 class="edit-title">プロフィール編集</h2>
+            <p class="edit-subtitle">あなたの情報を更新してください</p>
+        </div>
+        
+        <form method="post" enctype="multipart/form-data" class="profile-edit-form">
+            {% csrf_token %}
+            
+            <!-- アバター編集 -->
+            <div class="edit-section">
+                <label class="edit-label">アバター画像</label>
+                <div class="avatar-edit-area">
+                    <div class="avatar-preview">
+                        {% if profile.avatar %}
+                            <img src="{{ profile.avatar.url }}" alt="現在のアバター" class="preview-image" id="avatar-preview">
+                        {% else %}
+                            <div class="preview-placeholder" id="avatar-preview">画像</div>
+                        {% endif %}
+                    </div>
+                    <div class="avatar-upload-controls">
+                        <input type="file" name="avatar" id="avatar" accept="image/*" class="file-input" onchange="previewImage(this)">
+                        <label for="avatar" class="upload-btn">
+                            <span>📷</span> 画像を選択
+                        </label>
+                        <p class="upload-hint">推奨サイズ: 200x200px</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 表示名 -->
+            <div class="edit-section">
+                <label for="display_name" class="edit-label">表示名</label>
+                <input type="text" 
+                       name="display_name" 
+                       id="display_name" 
+                       value="{{ profile.display_name }}" 
+                       placeholder="表示名を入力してください" 
+                       class="edit-input">
+                <p class="input-hint">空の場合はユーザー名（{{ user.username }}）が表示されます</p>
+            </div>
+            
+            <!-- ユーザー名（表示のみ） -->
+            <div class="edit-section">
+                <label class="edit-label">ユーザー名</label>
+                <div class="readonly-field">
+                    <span class="readonly-value">{{ user.username }}</span>
+                    <span class="readonly-badge">変更不可</span>
+                </div>
+            </div>
+            
+            <!-- 自己紹介 -->
+            <div class="edit-section">
+                <label for="bio" class="edit-label">自己紹介</label>
+                <textarea name="bio" 
+                          id="bio" 
+                          rows="5" 
+                          placeholder="自己紹介を入力してください（最大200文字）" 
+                          class="edit-textarea"
+                          maxlength="200">{{ profile.bio }}</textarea>
+                <p class="input-hint">
+                    <span id="bio-count">{{ profile.bio|length|default:0 }}</span>/200文字
+                </p>
+            </div>
+            
+            <!-- アクションボタン -->
+            <div class="edit-actions">
+                <button type="submit" class="save-btn">
+                    <span>💾</span> 変更を保存
+                </button>
+                <a href="{% url 'my_wordbooks' %}" class="cancel-btn">
+                    <span>❌</span> キャンセル
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// アバター画像プレビュー
+function previewImage(input) {
+    const preview = document.getElementById('avatar-preview');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            if (preview.tagName === 'IMG') {
+                preview.src = e.target.result;
+            } else {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.className = 'preview-image';
+                img.id = 'avatar-preview';
+                preview.parentNode.replaceChild(img, preview);
+            }
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// 文字数カウント
+const bioTextarea = document.getElementById('bio');
+const bioCount = document.getElementById('bio-count');
+
+if (bioTextarea && bioCount) {
+    bioTextarea.addEventListener('input', function() {
+        bioCount.textContent = this.value.length;
+    });
+}
+</script>
+{% endblock %}
