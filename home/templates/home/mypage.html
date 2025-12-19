@@ -1,0 +1,49 @@
+{% extends 'home/base.html' %}
+
+{% block title %}マイページ - TANKORE{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="mypage-layout">
+        <aside class="account-panel">
+            <div class="account-card">
+                <div class="account-avatar">{{ user.username|first|upper }}</div>
+                <div class="account-meta">
+                    <p class="account-name">{{ nickname }}</p>
+                    <p class="account-email">@{{ user.username }}</p>
+                    <p class="account-email">{{ user.email|default:"メール未設定" }}</p>
+                </div>
+                <div class="account-stats-vertical">
+                    <div class="stat-line"><span>単語帳</span><strong>{{ my_wordbooks|length }}</strong></div>
+                    <div class="stat-line"><span>いいね合計</span><strong>{{ likes_total }}</strong></div>
+                    <div class="stat-line"><span>保存した単語帳</span><strong>{{ saved_wordbooks_count }}</strong></div>
+                </div>
+                <a href="{% url 'logout' %}" class="btn btn-outline btn-block">ログアウト</a>
+            </div>
+        </aside>
+
+        <section class="wordbook-section">
+            <div class="section-header">
+                <h2>自分の単語帳</h2>
+                <a href="{% url 'wordbook_create' %}" class="btn btn-primary">+ 新しい単語帳を作成</a>
+            </div>
+            
+            <div class="wordbook-grid">
+                {% for wordbook in my_wordbooks %}
+                    <a href="{% url 'wordbook_detail' wordbook.pk %}" class="wordbook-card">
+                        <div class="wordbook-image">
+                            <div class="image-placeholder">画像</div>
+                        </div>
+                        <div class="wordbook-info">
+                            <h3>{{ wordbook.title }}</h3>
+                            <p class="card-count">{{ wordbook.card_count }}枚</p>
+                        </div>
+                    </a>
+                {% empty %}
+                    <p class="empty-message">まだ単語帳がありません。新しい単語帳を作成しましょう！</p>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

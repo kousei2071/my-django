@@ -1,33 +1,9 @@
 {% extends 'home/base.html' %}
 
-{% block title %}マイページ - TANKORE{% endblock %}
+{% block title %}ホーム - TANKORE{% endblock %}
 
 {% block content %}
 <div class="container">
-    <!-- 自分の単語帳セクション -->
-    <section class="wordbook-section">
-        <div class="section-header">
-            <h2>自分の単語帳</h2>
-            <a href="{% url 'wordbook_create' %}" class="btn btn-primary">+ 新しい単語帳を作成</a>
-        </div>
-        
-        <div class="wordbook-grid">
-            {% for wordbook in my_wordbooks %}
-                <a href="{% url 'wordbook_detail' wordbook.pk %}" class="wordbook-card">
-                    <div class="wordbook-image">
-                        <div class="image-placeholder">画像</div>
-                    </div>
-                    <div class="wordbook-info">
-                        <h3>{{ wordbook.title }}</h3>
-                        <p class="card-count">{{ wordbook.card_count }}枚</p>
-                    </div>
-                </a>
-            {% empty %}
-                <p class="empty-message">まだ単語帳がありません。新しい単語帳を作成しましょう！</p>
-            {% endfor %}
-        </div>
-    </section>
-
     <!-- 人気の単語帳セクション -->
     <section class="wordbook-section">
         <h2 class="section-title">人気の単語帳</h2>

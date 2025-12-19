@@ -5,9 +5,22 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib import messages
 from .models import WordBook, WordCard
 
-# トップページ
-def index(request):
-    return render(request, 'home/index.html')
+# マイページ
+@login_required
+def mypage(request):
+    # 自分の単語帳
+    my_wordbooks = WordBook.objects.filter(user=request.user)
+    nickname = request.user.first_name or request.user.username
+    likes_total = 0  # TODO: 単語帳のいいね合計（実装予定）
+    saved_wordbooks_count = 0  # TODO: 保存している単語帳数（実装予定）
+    
+    context = {
+        'my_wordbooks': my_wordbooks,
+        'nickname': nickname,
+        'likes_total': likes_total,
+        'saved_wordbooks_count': saved_wordbooks_count,
+    }
+    return render(request, 'home/mypage.html', context)
 
 # ユーザー登録
 def register_view(request):
@@ -17,7 +30,7 @@ def register_view(request):
             user = form.save()
             login(request, user)
             messages.success(request, '会員登録が完了しました!')
-            return redirect('wordbook_list')
+            return redirect('mypage')
     else:
         form = UserCreationForm()
     return render(request, 'home/register.html', {'form': form})
@@ -32,7 +45,7 @@ def login_view(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
-                return redirect('wordbook_list')
+                return redirect('mypage')
     else:
         form = AuthenticationForm()
     return render(request, 'home/login.html', {'form': form})
@@ -43,20 +56,15 @@ def logout_view(request):
     messages.success(request, 'ログアウトしました')
     return redirect('home')
 
-# 単語帳一覧
-@login_required
+# ホームページ（単語帳一覧）
 def wordbook_list(request):
-    # 自分の単語帳
-    my_wordbooks = WordBook.objects.filter(user=request.user)
-    
     # 人気の単語帳（全ユーザーの単語帳から取得）
-    popular_wordbooks = WordBook.objects.exclude(user=request.user)[:6]
+    popular_wordbooks = WordBook.objects.all()[:6]
     
-    # 既存の単語帳（自分以外のユーザーの単語帳）
-    existing_wordbooks = WordBook.objects.exclude(user=request.user)[:6]
+    # 既存の単語帳（全ユーザーの単語帳）
+    existing_wordbooks = WordBook.objects.all()[:6]
     
     context = {
-        'my_wordbooks': my_wordbooks,
         'popular_wordbooks': popular_wordbooks,
         'existing_wordbooks': existing_wordbooks,
     }
