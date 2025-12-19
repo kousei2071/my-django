@@ -4,7 +4,9 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib import messages
 from .models import WordBook, WordCard
-
+from django.db.models import Count
+from django.urls import reverse
+from .models import wordBookLike
 # マイページ
 @login_required
 def mypage(request):
@@ -65,8 +67,8 @@ def wordbook_list(request):
     existing_wordbooks = WordBook.objects.all()[:6]
     
     context = {
-        'popular_wordbooks': popular_wordbooks,
-        'existing_wordbooks': existing_wordbooks,
+        'popular_wordbooks': WordBook.objects.annotate(like_count=Count('likes')).order_by('-like_count', '-created_at')[:6],
+        'existing_wordbooks': WordBook.objects.annotate(like_count=Count('likes')).order_by('-created_at')[:6]
     }
     return render(request, 'home/wordbook_list.html', context)
 
@@ -93,7 +95,12 @@ def wordbook_detail(request, pk):
     wordbook = get_object_or_404(WordBook, pk=pk)
     cards = wordbook.cards.all()
     
+    likes_count = wordbook.likes.count()
+    user_has_liked = wordbook.likes.filter(user=request.user).exists()
+    
     context = {
+        'likes_count': likes_count,
+        'user_has_liked': user_has_liked,
         'wordbook': wordbook,
         'cards': cards,
     }
@@ -134,3 +141,14 @@ def wordcard_delete(request, pk):
         messages.success(request, '単語カードを削除しました')
     
     return redirect('wordbook_detail', pk=wordbook_pk)
+
+#いいねトグル
+@login_required
+def wordbook_like_toggle(request, pk):
+    wordbook = get_object_or_404(WordBook, pk=pk)
+    next_url = request.POST.get('next') or reverse('wordbook_detail', args=[pk])
+    if request.method == 'POST':
+        like, created = wordBookLike.objects.get_or_create(user=request.user, wordbook=wordbook)
+        if not created:
+            like.delete()
+    return redirect(next_url)   

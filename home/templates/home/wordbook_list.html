@@ -15,7 +15,7 @@
                     </div>
                     <div class="wordbook-info">
                         <h3>{{ wordbook.title }}</h3>
-                        <p class="card-count">{{ wordbook.card_count }}枚</p>
+                        <p class="card-count">{{ wordbook.card_count }}枚・❤️ {{ wordbook.like_count|default:0 }}</p>
                     </div>
                 </a>
             {% empty %}
