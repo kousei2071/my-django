@@ -3,6 +3,7 @@
 {% block title %}ホーム - TANKORE{% endblock %}
 
 {% block content %}
+{% load static %}
 <div class="container">
     <!-- 人気の単語帳セクション -->
     <section class="wordbook-section">
@@ -15,7 +16,7 @@
                     </div>
                     <div class="wordbook-info">
                         <h3>{{ wordbook.title }}</h3>
-                        <p class="card-count">{{ wordbook.card_count }}枚・❤️ {{ wordbook.like_count|default:0 }}</p>
+                        <p class="card-count">{{ wordbook.card_count }}枚・<img src="{% static 'home/images/like-3d.png' %}" alt="いいね" class="like-icon"> {{ wordbook.like_count|default:0 }}</p>
                     </div>
                 </a>
             {% empty %}

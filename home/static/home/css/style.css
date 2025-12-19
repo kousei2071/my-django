@@ -436,6 +436,23 @@ body {
     font-size: 0.9rem;
 }
 
+/* いいねアイコン */
+.like-icon {
+    width: 20px;
+    height: 20px;
+    vertical-align: -0.15em;
+    margin-right: 6px;
+    display: inline-block;
+}
+
+/* ボタン内のいいねアイコン微調整 */
+.btn .like-icon {
+    width: 18px;
+    height: 18px;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
 .empty-message {
     text-align: center;
     color: #999;
