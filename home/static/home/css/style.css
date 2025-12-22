@@ -26,6 +26,217 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1.5rem;
+}
+
+/* ヘッダー検索バー */
+.header-search-form {
+    flex: 1;
+    max-width: 500px;
+}
+
+.header-search-wrapper {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.header-search-input {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    border: 2px solid rgba(255,255,255,0.8);
+    border-radius: 20px;
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.2s;
+    background: white;
+}
+
+.header-search-input:focus {
+    border-color: white;
+    box-shadow: 0 2px 8px rgba(255,255,255,0.5);
+}
+
+.header-search-input::placeholder {
+    color: #999;
+}
+
+.header-search-btn {
+    background: white;
+    color: #FF69B4;
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-search-btn .search-icon {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+.header-search-btn:hover {
+    background: #FFF;
+    transform: scale(1.05);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+}
+
+@media (max-width: 768px) {
+    .header .container {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+    
+    .header-search-form {
+        order: 3;
+        flex: 1 1 100%;
+        max-width: 100%;
+    }
+    
+    .header-search-input {
+        font-size: 0.85rem;
+        padding: 0.5rem 0.85rem;
+    }
+    
+    .header-search-btn {
+        padding: 0.5rem 0.85rem;
+    }
+}
+
+/* ヘッダータグ検索バー */
+.header-tags-section {
+    background: white;
+    border-bottom: 3px solid #FFE4E9;
+    box-shadow: 0 2px 8px rgba(255,105,180,0.1);
+}
+
+.header-tags-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    overflow: hidden;
+}
+
+.tags-label {
+    font-weight: 700;
+    color: #FF69B4;
+    white-space: nowrap;
+    font-size: 0.95rem;
+}
+
+.header-tags-scroll {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    flex: 1;
+    padding: 0.25rem 0;
+    scrollbar-width: thin;
+    scrollbar-color: #FFB5C0 #FFF9F9;
+}
+
+.header-tags-scroll::-webkit-scrollbar {
+    height: 6px;
+}
+
+.header-tags-scroll::-webkit-scrollbar-track {
+    background: #FFF9F9;
+    border-radius: 3px;
+}
+
+.header-tags-scroll::-webkit-scrollbar-thumb {
+    background: #FFB5C0;
+    border-radius: 3px;
+}
+
+.header-tags-scroll::-webkit-scrollbar-thumb:hover {
+    background: #FF69B4;
+}
+
+.tag-chip-header {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #FFF;
+    color: #555;
+    padding: 0.5rem 0.9rem;
+    border-radius: 16px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    border: 2px solid #E0E0E0;
+}
+
+.tag-chip-header:hover {
+    background: #FFF5F5;
+    border-color: #FFB5C0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(255,105,180,0.2);
+}
+
+.tag-chip-header.active {
+    background: #FF69B4;
+    color: white;
+    border-color: #FF69B4;
+    box-shadow: 0 3px 8px rgba(255,105,180,0.3);
+}
+
+.tag-count-small {
+    background: rgba(0,0,0,0.1);
+    padding: 0.15rem 0.45rem;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.tag-chip-header.active .tag-count-small {
+    background: rgba(255,255,255,0.3);
+}
+
+.btn-clear-header {
+    background: #FF6B6B;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.2rem;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(255,107,107,0.3);
+}
+
+.btn-clear-header:hover {
+    background: #FF4444;
+    transform: scale(1.1) rotate(90deg);
+}
+
+@media (max-width: 768px) {
+    .header-tags-wrapper {
+        gap: 0.5rem;
+    }
+    
+    .tags-label {
+        font-size: 0.85rem;
+    }
+    
+    .tag-chip-header {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+    }
 }
 
 .logo {
@@ -827,6 +1038,151 @@ body {
     .image-placeholder { padding: 0.45rem 0.7rem; }
 }
 
+/* タグ検索セクション */
+.tags-section {
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.tags-section .section-title {
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    color: #333;
+}
+
+.tags-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.tag-chip-search {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: white;
+    color: #555;
+    padding: 0.75rem 1.25rem;
+    border-radius: 20px;
+    font-size: 1rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    border: 3px solid #E0E0E0;
+}
+
+.tag-chip-search:hover {
+    background: #FFF5F5;
+    border-color: #FFB5C0;
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 6px 15px rgba(255,105,180,0.3);
+}
+
+.tag-chip-search.active,
+.tag-chip-search.selected {
+    background: #FF69B4;
+    color: white;
+    border-color: #FF69B4;
+}
+
+.tag-count {
+    background: rgba(0,0,0,0.1);
+    padding: 0.25rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.tag-chip-search.active .tag-count,
+.tag-chip-search.selected .tag-count {
+    background: rgba(255,255,255,0.3);
+}
+
+/* 選択中のタグ表示 */
+.selected-tags-display {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #FFF9F9;
+    border-radius: 16px;
+    border: 2px solid #FFB5C0;
+}
+
+.filter-label {
+    font-weight: 700;
+    color: #FF69B4;
+    margin: 0;
+}
+
+.btn-clear-filter {
+    margin-left: auto;
+    padding: 0.5rem 1rem;
+    background: #FF6B6B;
+    color: white;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 700;
+    transition: all 0.2s;
+}
+
+.btn-clear-filter:hover {
+    background: #FF4444;
+    transform: scale(1.05);
+}
+
+/* フィルター結果情報 */
+.filter-result-info {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #E8F5E9;
+    border-left: 4px solid #4CAF50;
+    border-radius: 8px;
+}
+
+.filter-result-info p {
+    margin: 0;
+    font-weight: 600;
+    color: #2E7D32;
+}
+
+/* 詳細ページのタグをリンク風に */
+.tag-chip-link {
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.tag-chip-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255,181,192,0.4);
+}
+
+@media (max-width: 768px) {
+    .tags-section {
+        padding: 1.5rem;
+    }
+    
+    .tags-grid {
+        gap: 0.75rem;
+    }
+    
+    .tag-chip-search {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .selected-tags-display {
+        flex-wrap: wrap;
+    }
+}
+
 /* タグ表示エリア */
 .tags-display {
     margin: 1rem 0;
@@ -1056,7 +1412,7 @@ body {
 .selected-tags-section,
 .available-tags-section,
 .create-tag-section {
-    margin-bottom: 2rem;
+    margin-bottom: 0.5rem;
 }
 
 .selected-tags-list,
@@ -1303,3 +1659,200 @@ body {
     }
 }
 
+/* 検索セクション */
+.search-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    margin: 1.5rem 0;
+}
+
+.search-form {
+    width: 100%;
+}
+
+.search-input-wrapper {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.search-input {
+    flex: 1;
+    padding: 0.9rem 1.2rem;
+    border: 2px solid #E0E0E0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.2s;
+    outline: none;
+}
+
+.search-input:focus {
+    border-color: #FF69B4;
+    box-shadow: 0 0 0 3px rgba(255,105,180,0.1);
+}
+
+.search-btn {
+    background: #FF69B4;
+    color: white;
+    border: none;
+    padding: 0.9rem 1.5rem;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 700;
+}
+
+.search-btn:hover {
+    background: #FF1493;
+    transform: scale(1.05);
+}
+
+/* タグセクション */
+.tags-section {
+    background: #FFF9F9;
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(255,182,193,0.2);
+    margin-bottom: 1.5rem;
+}
+
+.tags-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #FF69B4;
+    margin-bottom: 1rem;
+}
+
+.tags-scroll {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding: 0.5rem 0;
+    scrollbar-width: thin;
+    scrollbar-color: #FFB5C0 #FFF;
+}
+
+.tags-scroll::-webkit-scrollbar {
+    height: 8px;
+}
+
+.tags-scroll::-webkit-scrollbar-track {
+    background: #FFF;
+    border-radius: 4px;
+}
+
+.tags-scroll::-webkit-scrollbar-thumb {
+    background: #FFB5C0;
+    border-radius: 4px;
+}
+
+.tags-scroll::-webkit-scrollbar-thumb:hover {
+    background: #FF69B4;
+}
+
+.tag-chip-search {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: white;
+    color: #555;
+    padding: 0.7rem 1.1rem;
+    border-radius: 20px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border: 2px solid #F0F0F0;
+}
+
+.tag-chip-search:hover {
+    background: #FFF5F5;
+    border-color: #FFB5C0;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(255,105,180,0.25);
+}
+
+.tag-chip-search.active {
+    background: #FF69B4;
+    color: white;
+    border-color: #FF69B4;
+    box-shadow: 0 4px 12px rgba(255,105,180,0.4);
+}
+
+.tag-count {
+    background: rgba(0,0,0,0.1);
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.tag-chip-search.active .tag-count {
+    background: rgba(255,255,255,0.3);
+}
+
+.btn-clear-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #FF6B6B;
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    margin-top: 1rem;
+    box-shadow: 0 2px 8px rgba(255,107,107,0.3);
+}
+
+.btn-clear-filter:hover {
+    background: #FF4444;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255,107,107,0.4);
+}
+
+/* フィルター結果表示 */
+.filter-result-info {
+    background: #E8F5FF;
+    border-left: 4px solid #4A90E2;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.filter-result-info p {
+    color: #2C5282;
+    font-weight: 600;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .search-input-wrapper {
+        flex-direction: row;
+    }
+    
+    .search-input {
+        font-size: 0.95rem;
+        padding: 0.75rem 1rem;
+    }
+    
+    .search-btn {
+        padding: 0.75rem 1.2rem;
+    }
+    
+    .tags-title {
+        font-size: 1rem;
+    }
+    
+    .tag-chip-search {
+        padding: 0.6rem 0.95rem;
+        font-size: 0.9rem;
+    }
+}

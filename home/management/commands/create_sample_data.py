@@ -61,6 +61,7 @@ class Command(BaseCommand):
             {
                 'title': 'TOEIC必須単語 600点レベル',
                 'description': 'TOEIC 600点を目指すための基本的な英単語集です。ビジネスシーンでよく使われる単語を中心に収録しています。',
+                'tags': ['TOEIC600', 'ビジネス英語', '単語'],
                 'cards': [
                     ('accomplish', '達成する、成し遂げる'),
                     ('acquire', '取得する、習得する'),
@@ -77,6 +78,7 @@ class Command(BaseCommand):
             {
                 'title': '大学受験英単語 基礎編',
                 'description': '大学受験に必要な基礎的な英単語を厳選しました。まずはこれらの単語をしっかりと覚えましょう。',
+                'tags': ['大学受験', '基礎', '単語'],
                 'cards': [
                     ('ability', '能力、才能'),
                     ('accept', '受け入れる、認める'),
@@ -93,6 +95,7 @@ class Command(BaseCommand):
             {
                 'title': '日常英会話 頻出フレーズ',
                 'description': '日常会話で使える基本的な英語フレーズ集。覚えておくと便利な表現ばかりです。',
+                'tags': ['日常会話', '初級', '文法'],
                 'cards': [
                     ("How's it going?", '調子はどう？'),
                     ("What's up?", '元気？何してる？'),
@@ -109,6 +112,7 @@ class Command(BaseCommand):
             {
                 'title': 'IT・プログラミング英単語',
                 'description': 'プログラミングやIT分野でよく使われる英単語集。エンジニアを目指す方におすすめです。',
+                'tags': ['IT用語', '上級', '単語'],
                 'cards': [
                     ('algorithm', 'アルゴリズム、計算手法'),
                     ('application', 'アプリケーション、応用'),
@@ -125,6 +129,7 @@ class Command(BaseCommand):
             {
                 'title': '英検2級 重要単語',
                 'description': '英検2級合格のために覚えておきたい重要単語を集めました。高校レベルの語彙力向上に最適です。',
+                'tags': ['英検2級', '中級', '単語'],
                 'cards': [
                     ('advance', '前進する、進歩'),
                     ('advantage', '利点、有利'),
@@ -154,6 +159,12 @@ class Command(BaseCommand):
             if created:
                 self.stdout.write(f'Created wordbook: {wordbook.title}')
                 
+                # タグを割り当て
+                tags = wordbook_data.get('tags', [])
+                for tag_name in tags:
+                    tag = Tag.objects.get(name=tag_name)
+                    wordbook.tags.add(tag)
+                
                 # 単語カードを作成
                 for front, back in wordbook_data['cards']:
                     WordCard.objects.create(
@@ -163,6 +174,7 @@ class Command(BaseCommand):
                     )
                 
                 self.stdout.write(f'  - Added {len(wordbook_data["cards"])} cards')
+                self.stdout.write(f'  - Added tags: {", ".join(tags)}')
             else:
                 self.stdout.write(f'Wordbook already exists: {wordbook.title}')
 
