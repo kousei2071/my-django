@@ -7,7 +7,7 @@
     <div class="form-container">
         <h1>{{ wordbook.title }} に単語カードを追加</h1>
         
-        <form method="post" enctype="multipart/form-data" class="create-form">
+        <form method="post" class="create-form">
             {% csrf_token %}
             
             <div class="form-group">
@@ -20,14 +20,9 @@
                 <textarea name="back_text" id="back_text" class="form-textarea" rows="3" required></textarea>
             </div>
             
-            <div class="form-group">
-                <label for="image">画像（任意）</label>
-                <input type="file" name="image" id="image" class="form-input" accept="image/*">
-            </div>
-            
             <div class="form-actions">
                 <a href="{% url 'wordbook_detail' wordbook.pk %}" class="btn btn-secondary">キャンセル</a>
-                <button type="submit" class="btn btn-primary">追加する</button>
+                <button type="submit" class="btn btn-primary">追加して続ける</button>
             </div>
         </form>
     </div>

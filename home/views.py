@@ -3,24 +3,35 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib import messages
-from .models import WordBook, WordCard
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.urls import reverse
-from .models import wordBookLike
+from django.http import JsonResponse, HttpResponseForbidden
+from django.utils.text import slugify
+from .models import WordBook, WordCard, Tag, wordBookLike, WordBookBookmark
+import re
 # マイページ
 @login_required
 def mypage(request):
     # 自分の単語帳
-    my_wordbooks = WordBook.objects.filter(user=request.user)
+    my_wordbooks_qs = WordBook.objects.filter(user=request.user).annotate(like_count=Count('likes')).order_by('-created_at')
+    my_wordbooks_count = my_wordbooks_qs.count()
+    my_wordbooks_preview = list(my_wordbooks_qs[:3])
+
+    # 保存した単語帳（ブックマーク）
+    bookmarked_qs = WordBook.objects.filter(bookmarks__user=request.user).annotate(like_count=Count('likes')).order_by('-bookmarks__created_at')
+    saved_wordbooks_count = bookmarked_qs.count()
+    saved_wordbooks_preview = list(bookmarked_qs[:6])
+
     nickname = request.user.first_name or request.user.username
-    likes_total = 0  # TODO: 単語帳のいいね合計（実装予定）
-    saved_wordbooks_count = 0  # TODO: 保存している単語帳数（実装予定）
+    likes_total = wordBookLike.objects.filter(wordbook__user=request.user).count()
     
     context = {
-        'my_wordbooks': my_wordbooks,
+        'my_wordbooks': my_wordbooks_preview,
+        'my_wordbooks_count': my_wordbooks_count,
+        'saved_wordbooks': saved_wordbooks_preview,
+        'saved_wordbooks_count': saved_wordbooks_count,
         'nickname': nickname,
         'likes_total': likes_total,
-        'saved_wordbooks_count': saved_wordbooks_count,
     }
     return render(request, 'home/mypage.html', context)
 
@@ -97,10 +108,15 @@ def wordbook_detail(request, pk):
     
     likes_count = wordbook.likes.count()
     user_has_liked = wordbook.likes.filter(user=request.user).exists()
+    user_has_bookmarked = wordbook.bookmarks.filter(user=request.user).exists()
+    # 所有者なら常に編集ボタン（カード追加など）を表示
+    can_edit = wordbook.user == request.user
     
     context = {
         'likes_count': likes_count,
         'user_has_liked': user_has_liked,
+        'user_has_bookmarked': user_has_bookmarked,
+        'can_edit': can_edit,
         'wordbook': wordbook,
         'cards': cards,
     }
@@ -114,16 +130,14 @@ def wordcard_create(request, wordbook_pk):
     if request.method == 'POST':
         front_text = request.POST.get('front_text')
         back_text = request.POST.get('back_text')
-        image = request.FILES.get('image')
         
         WordCard.objects.create(
             wordbook=wordbook,
             front_text=front_text,
-            back_text=back_text,
-            image=image
+            back_text=back_text
         )
-        messages.success(request, '単語カードを追加しました!')
-        return redirect('wordbook_detail', pk=wordbook.pk)
+        messages.success(request, '単語カードを追加しました。続けて追加できます。')
+        return redirect('wordcard_create', wordbook_pk=wordbook.pk)
     
     context = {
         'wordbook': wordbook,
@@ -152,3 +166,157 @@ def wordbook_like_toggle(request, pk):
         if not created:
             like.delete()
     return redirect(next_url)   
+
+
+# ブックマークトグル
+@login_required
+def wordbook_bookmark_toggle(request, pk):
+    wordbook = get_object_or_404(WordBook, pk=pk)
+    next_url = request.POST.get('next') or reverse('wordbook_detail', args=[pk])
+    if request.method == 'POST':
+        bookmark, created = WordBookBookmark.objects.get_or_create(user=request.user, wordbook=wordbook)
+        if not created:
+            bookmark.delete()
+    return redirect(next_url)
+
+
+# ---- Tag APIs ----
+def _normalize_tag_name(name: str) -> str:
+    # 先頭の#除去、trim、連続空白を1つに
+    if not name:
+        return ''
+    s = name.strip()
+    if s.startswith('#'):
+        s = s[1:]
+    s = re.sub(r"\s+", " ", s)
+    return s
+
+
+def tags_list(request):
+    q = (request.GET.get('q') or '').strip()
+    try:
+        limit = int(request.GET.get('limit') or 20)
+        offset = int(request.GET.get('offset') or 0)
+    except ValueError:
+        return JsonResponse({'error': {'code': 'BadRequest', 'message': 'limit/offset must be integers'}}, status=400)
+    order_by = request.GET.get('order_by') or 'name'
+    if limit < 1 or limit > 50 or offset < 0 or order_by not in ('name', '-name'):
+        return JsonResponse({'error': {'code': 'BadRequest', 'message': 'invalid limit/offset/order_by'}}, status=400)
+
+    qs = Tag.objects.all()
+    if q:
+        qs = qs.filter(name__icontains=q)
+    total = qs.count()
+    items = qs.order_by(order_by)[offset:offset+limit]
+    # usage_countは必要に応じて別クエリで集計可能。ここでは省略/0固定にせず関連数を取得
+    user_id = request.user.id if request.user.is_authenticated else None
+    payload = [
+        {
+            'id': t.id,
+            'name': t.name,
+            'slug': t.slug,
+            'usage_count': t.wordbooks.count(),
+            'created_by_me': t.created_by_id == user_id if user_id else False,
+        } for t in items
+    ]
+    next_url = None
+    prev_url = None
+    if offset + limit < total:
+        next_url = f"?q={q}&limit={limit}&offset={offset+limit}&order_by={order_by}"
+    if offset > 0:
+        prev_off = max(0, offset - limit)
+        prev_url = f"?q={q}&limit={limit}&offset={prev_off}&order_by={order_by}"
+    return JsonResponse({'tags': payload, 'count': total, 'next': next_url, 'prev': prev_url})
+
+
+from django.contrib.auth.decorators import login_required
+
+
+@login_required
+def tag_create(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': {'code': 'BadRequest', 'message': 'POST required'}}, status=400)
+    raw = request.POST.get('name')
+    name = _normalize_tag_name(raw or '')
+    if not name:
+        return JsonResponse({'error': {'code': 'BadRequest', 'message': 'name required'}}, status=400)
+    if len(name) > 50:
+        return JsonResponse({'error': {'code': 'BadRequest', 'message': 'name too long'}}, status=400)
+    slug = slugify(name, allow_unicode=True)[:60]
+    if not slug:
+        return JsonResponse({'error': {'code': 'BadRequest', 'message': 'invalid name'}}, status=400)
+    tag, created = Tag.objects.get_or_create(slug=slug, defaults={'name': name, 'created_by': request.user})
+    return JsonResponse({'id': tag.id, 'name': tag.name, 'slug': tag.slug, 'created': created}, status=201 if created else 200)
+
+
+@login_required
+def tag_delete(request, pk):
+    tag = get_object_or_404(Tag, pk=pk)
+    if tag.created_by != request.user:
+        return HttpResponseForbidden('not allowed')
+    if request.method != 'POST':
+        return JsonResponse({'error': {'code': 'BadRequest', 'message': 'POST required'}}, status=400)
+    
+    # 使用されているかチェック
+    if tag.wordbooks.exists():
+        return JsonResponse({'error': {'code': 'BadRequest', 'message': 'tag is in use'}}, status=400)
+    
+    tag.delete()
+    return JsonResponse({'ok': True})
+
+
+@login_required
+def wordbook_update_tags(request, pk):
+    wb = get_object_or_404(WordBook, pk=pk)
+    if wb.user != request.user:
+        return HttpResponseForbidden('not allowed')
+    if request.method != 'POST':
+        return JsonResponse({'error': {'code': 'BadRequest', 'message': 'POST required'}}, status=400)
+
+    tag_ids_raw = (request.POST.get('tag_ids') or '').strip()
+    tag_slugs_raw = (request.POST.get('tag_slugs') or '').strip()
+
+    ids = []
+    slugs = []
+    if tag_ids_raw:
+        try:
+            ids = [int(x) for x in tag_ids_raw.split(',') if x.strip()]
+        except ValueError:
+            return JsonResponse({'error': {'code': 'BadRequest', 'message': 'invalid tag_ids'}}, status=400)
+    if tag_slugs_raw:
+        slugs = [x.strip() for x in tag_slugs_raw.split(',') if x.strip()]
+
+    if len(ids) + len(slugs) > 10:
+        return JsonResponse({'error': {'code': 'BadRequest', 'message': 'too many tags (max 10)'}}, status=400)
+
+    tags = Tag.objects.filter(Q(id__in=ids) | Q(slug__in=slugs))
+    if tags.count() != len(set(ids)) + len(set(slugs)) and (ids or slugs):
+        # 一部見つからない場合は400（緩和するならここは警告に変更可）
+        return JsonResponse({'error': {'code': 'BadRequest', 'message': 'some tags not found'}}, status=400)
+
+    wb.tags.set(tags)
+    return JsonResponse({'ok': True, 'tag_ids': [t.id for t in tags]})
+
+
+# 自分の単語帳全件
+@login_required
+def my_wordbooks_all(request):
+    my_wordbooks_qs = WordBook.objects.filter(user=request.user).annotate(like_count=Count('likes')).order_by('-created_at')
+    context = {
+        'title': '自分の単語帳',
+        'wordbooks': my_wordbooks_qs,
+        'from_source': 'mypage',
+    }
+    return render(request, 'home/wordbook_collection_full.html', context)
+
+
+# ブックマーク全件
+@login_required
+def bookmarked_wordbooks_all(request):
+    bookmarked_qs = WordBook.objects.filter(bookmarks__user=request.user).annotate(like_count=Count('likes')).order_by('-bookmarks__created_at')
+    context = {
+        'title': '保存した単語帳',
+        'wordbooks': bookmarked_qs,
+        'from_source': 'bookmarks',
+    }
+    return render(request, 'home/wordbook_collection_full.html', context)

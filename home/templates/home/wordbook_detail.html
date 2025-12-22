@@ -4,7 +4,6 @@
 
 {% block content %}
 {% load static %}
-{% with like_emoji_url=static|add:'home/images/like-emoji.png' like_3d_url=static|add:'home/images/like-3d.png' %}
 <div class="container">
     <div class="wordbook-detail-header">
         <div class="wordbook-detail-left">
@@ -13,9 +12,24 @@
             </div>
         </div>
         
-        <div class="wordbook-detail-right">
-            <h1 class="wordbook-detail-title">{{ wordbook.title }}</h1>
-            <div class="like-action">
+                <div class="wordbook-detail-right">
+                        <h1 class="wordbook-detail-title">{{ wordbook.title }}</h1>
+            
+            <!-- タグ表示エリア -->
+            <div class="tags-display">
+                {% if wordbook.tags.all %}
+                    {% for tag in wordbook.tags.all %}
+                        <span class="tag-chip">{{ tag.name }}</span>
+                    {% endfor %}
+                {% else %}
+                    <span class="no-tags">タグなし</span>
+                {% endif %}
+                {% if can_edit %}
+                    <button class="btn-edit-tags" onclick="openTagModal()">タグを編集</button>
+                {% endif %}
+            </div>
+            
+            <div class="like-action action-buttons">
             {% if user.is_authenticated %}
                 <form method="post" action="{% url 'wordbook_like' wordbook.pk %}">
                     {% csrf_token %}
@@ -24,11 +38,18 @@
                       <img src="{% static 'home/images/like-3d.png' %}" alt="いいね" class="like-icon"> {{ likes_count }} {% if user_has_liked %}取り消す{% else %}いいね{% endif %}
                     </button>
                  </form>
+                 <form method="post" action="{% url 'wordbook_bookmark' wordbook.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button type="submit" class="btn btn-secondary {% if user_has_bookmarked %}is-bookmarked{% endif %}">
+                        <img src="{% static 'home/images/bookmark_3d.png' %}" alt="ブックマーク" class="bookmark-icon"> {% if user_has_bookmarked %}保存済み{% else %}保存する{% endif %}
+                    </button>
+                 </form>
               {% else %}
-                 <a class="btn btn-secondary" href="{% url 'login' %}?next={{ request.get_full_path }}">ログインしていいね</a>
+                 <a class="btn btn-secondary" href="{% url 'login' %}?next={{ request.get_full_path }}">ログインしていいね・保存</a>
             {% endif %}
         </div>
-                    {% if wordbook.user == user %}
+                    {% if can_edit %}
                 <a href="{% url 'wordcard_create' wordbook.pk %}" class="btn btn-primary">+ 単語カードを追加</a>
                 <a href="{% url 'wordbook_list' %}" class="btn btn-secondary">単語帳一覧に戻る</a>
             {% endif %}
@@ -65,5 +86,234 @@
         {% endif %}
     </div>
 </div>
-{% endwith %}
+
+<!-- タグ編集モーダル -->
+{% if can_edit %}
+<div id="tagModal" class="tag-modal">
+    <div class="tag-modal-content">
+        <div class="tag-modal-header">
+            <h2>タグを編集</h2>
+            <button class="tag-modal-close" onclick="closeTagModal()">&times;</button>
+        </div>
+        <div class="tag-modal-body">
+            <!-- タグ検索 -->
+            <div class="tag-search-section">
+                <input type="text" id="tagSearchInput" placeholder="タグを検索..." oninput="searchTags()">
+            </div>
+            
+            <!-- 選択中のタグ -->
+            <div class="selected-tags-section">
+                <h3>選択中のタグ (最大10個)</h3>
+                <div id="selectedTags" class="selected-tags-list"></div>
+            </div>
+            
+            <!-- 利用可能なタグ -->
+            <div class="available-tags-section">
+                <h3>利用可能なタグ</h3>
+                <div id="availableTags" class="available-tags-list"></div>
+            </div>
+            
+            <!-- 新しいタグを作成 -->
+            <div class="create-tag-section">
+                <h3>新しいタグを作成</h3>
+                <div class="create-tag-form">
+                    <input type="text" id="newTagInput" placeholder="タグ名を入力" maxlength="50">
+                    <button class="btn btn-secondary" onclick="createTag()">作成</button>
+                </div>
+            </div>
+        </div>
+        <div class="tag-modal-footer">
+            <button class="btn btn-secondary" onclick="closeTagModal()">キャンセル</button>
+            <button class="btn btn-primary" onclick="saveTags()">保存</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const wordbookId = {{ wordbook.pk }};
+let allTags = [];
+let selectedTagIds = [];
+
+// 初期選択タグを設定
+document.addEventListener('DOMContentLoaded', function() {
+    selectedTagIds = [{% for tag in wordbook.tags.all %}{{ tag.id }}{% if not forloop.last %},{% endif %}{% endfor %}];
+});
+
+function openTagModal() {
+    document.getElementById('tagModal').style.display = 'flex';
+    loadTags();
+}
+
+function closeTagModal() {
+    document.getElementById('tagModal').style.display = 'none';
+}
+
+function loadTags(query = '') {
+    const url = query ? `/tags/?q=${encodeURIComponent(query)}&limit=50` : '/tags/?limit=50';
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            allTags = data.tags;
+            renderTags();
+        })
+        .catch(err => console.error('タグ読込エラー:', err));
+}
+
+function searchTags() {
+    const query = document.getElementById('tagSearchInput').value;
+    loadTags(query);
+}
+
+function renderTags() {
+    // 選択中のタグを表示
+    const selectedContainer = document.getElementById('selectedTags');
+    const selectedTags = allTags.filter(t => selectedTagIds.includes(t.id));
+    if (selectedTags.length === 0) {
+        selectedContainer.innerHTML = '<p class="empty-tags">タグが選択されていません</p>';
+    } else {
+        selectedContainer.innerHTML = selectedTags.map(tag => 
+            `<span class="tag-chip selected" onclick="removeTag(${tag.id})">
+                ${tag.name} <span class="remove-icon">×</span>
+            </span>`
+        ).join('');
+    }
+    
+    // 利用可能なタグを表示
+    const availableContainer = document.getElementById('availableTags');
+    const availableTags = allTags.filter(t => !selectedTagIds.includes(t.id));
+    if (availableTags.length === 0) {
+        availableContainer.innerHTML = '<p class="empty-tags">利用可能なタグがありません</p>';
+    } else {
+        availableContainer.innerHTML = availableTags.map(tag => {
+            const deleteBtn = tag.created_by_me ? 
+                `<button class="btn-delete-tag" onclick="deleteTag(${tag.id}, event)" title="削除">🗑️</button>` : '';
+            return `<span class="tag-chip available" onclick="addTag(${tag.id})">
+                ${tag.name} <span class="add-icon">+</span>
+                ${deleteBtn}
+            </span>`;
+        }).join('');
+    }
+}
+
+function addTag(tagId) {
+    if (selectedTagIds.length >= 10) {
+        alert('タグは最大10個まで選択できます');
+        return;
+    }
+    if (!selectedTagIds.includes(tagId)) {
+        selectedTagIds.push(tagId);
+        renderTags();
+    }
+}
+
+function removeTag(tagId) {
+    selectedTagIds = selectedTagIds.filter(id => id !== tagId);
+    renderTags();
+}
+
+function createTag() {
+    const input = document.getElementById('newTagInput');
+    const name = input.value.trim();
+    if (!name) {
+        alert('タグ名を入力してください');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    
+    fetch('/tags/create/', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.id) {
+            input.value = '';
+            loadTags();
+            if (!selectedTagIds.includes(data.id)) {
+                addTag(data.id);
+            }
+            if (data.created) {
+                alert('新しいタグを作成しました: ' + data.name);
+            } else {
+                alert('既存のタグを追加しました: ' + data.name);
+            }
+        } else if (data.error) {
+            alert('エラー: ' + data.error.message);
+        }
+    })
+    .catch(err => {
+        console.error('タグ作成エラー:', err);
+        alert('タグの作成に失敗しました');
+    });
+}
+
+function saveTags() {
+    const formData = new FormData();
+    formData.append('tag_ids', selectedTagIds.join(','));
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    
+    fetch(`/wordbooks/${wordbookId}/tags/`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.ok) {
+            alert('タグを保存しました');
+            location.reload();
+        } else if (data.error) {
+            alert('エラー: ' + data.error.message);
+        }
+    })
+    .catch(err => {
+        console.error('タグ保存エラー:', err);
+        alert('タグの保存に失敗しました');
+    });
+}
+
+function deleteTag(tagId, event) {
+    event.stopPropagation();
+    
+    const tag = allTags.find(t => t.id === tagId);
+    if (!tag) return;
+    
+    if (!confirm(`「${tag.name}」を削除しますか？\n※使用中の場合は削除できません`)) {
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    
+    fetch(`/tags/${tagId}/delete/`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.ok) {
+            alert('タグを削除しました');
+            loadTags();
+        } else if (data.error) {
+            alert('エラー: ' + data.error.message);
+        }
+    })
+    .catch(err => {
+        console.error('タグ削除エラー:', err);
+        alert('タグの削除に失敗しました');
+    });
+}
+
+// モーダルの外側をクリックで閉じる
+window.onclick = function(event) {
+    const modal = document.getElementById('tagModal');
+    if (event.target === modal) {
+        closeTagModal();
+    }
+}
+</script>
+{% endif %}
+
 {% endblock %}
