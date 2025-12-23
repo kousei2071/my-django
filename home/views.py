@@ -9,6 +9,7 @@ from django.http import JsonResponse, HttpResponseForbidden
 from django.utils.text import slugify
 from .models import WordBook, WordCard, Tag, wordBookLike, WordBookBookmark, UserProfile
 import re
+import random
 
 AVATAR_IMAGES = [
     'account.png',
@@ -17,6 +18,8 @@ AVATAR_IMAGES = [
     'account4.png',
     'account5.png',
     'account6.png',
+    'account7.png',
+    'account8.png',
 ]
 
 BACKGROUND_COLORS = [
