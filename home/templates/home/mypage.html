@@ -1,4 +1,5 @@
 {% extends 'home/base.html' %}
+{% load static %}
 
 {% block title %}マイページ - TANKORE{% endblock %}
 
@@ -7,7 +8,9 @@
     <div class="mypage-layout">
         <aside class="account-panel">
             <div class="account-card">
-                <div class="account-avatar">{{ user.username|first|upper }}</div>
+                <div class="account-avatar avatar-clickable" id="avatarImage" title="クリックして画像を変更" style="background-color: {{ background_color|default:'#fffff0' }};">
+                    <img src="{% static 'home/images/django icon/' %}{{ avatar_image }}" alt="avatar" style="width: 100%; height: 100%; border-radius: 16px; object-fit: cover;">
+                </div>
                 <div class="account-meta">
                     <p class="account-name">{{ nickname }}</p>
                     <p class="account-email">@{{ user.username }}</p>
@@ -21,6 +24,26 @@
                 <a href="{% url 'logout' %}" class="btn btn-outline  btn-block" style="width: 80%;">ログアウト</a>
             </div>
         </aside>
+
+        <!-- アバター選択モーダル -->
+        <div id="avatarModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>アバター画像を選択</h2>
+                    <button type="button" class="modal-close" id="closeAvatarModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <h3 class="avatar-modal-subtitle">アイコンを選択</h3>
+                    <div class="avatar-grid" id="avatarGrid">
+                        <!-- JavaScriptで動的に生成 -->
+                    </div>
+                    <h3 class="avatar-modal-subtitle" style="margin-top: 1.5rem;">背景色を選択</h3>
+                    <div class="color-grid" id="backgroundGrid">
+                        <!-- JavaScriptで動的に生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div class="wordbook-sections-group">
             <section class="wordbook-section">
@@ -77,4 +100,141 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const avatarImage = document.getElementById('avatarImage');
+    const avatarModal = document.getElementById('avatarModal');
+    const closeAvatarModal = document.getElementById('closeAvatarModal');
+    const avatarGrid = document.getElementById('avatarGrid');
+    const backgroundGrid = document.getElementById('backgroundGrid');
+    let selectedAvatar = '{{ avatar_image }}';
+    let selectedBackground = '{{ background_color }}';
+
+    // アバター画像をクリックしてモーダルを開く
+    avatarImage.addEventListener('click', async function() {
+        try {
+            const [avatarRes, bgRes] = await Promise.all([
+                fetch('{% url "get_avatars" %}'),
+                fetch('{% url "get_backgrounds" %}')
+            ]);
+            const avatarData = await avatarRes.json();
+            const bgData = await bgRes.json();
+
+            avatarGrid.innerHTML = '';
+            avatarData.avatars.forEach(avatar => {
+                const avatarItem = document.createElement('div');
+                avatarItem.className = 'avatar-item';
+                if (avatar === selectedAvatar) {
+                    avatarItem.classList.add('selected');
+                }
+                
+                const img = document.createElement('img');
+                img.src = `{% static 'home/images/django icon/' %}${avatar}`;
+                img.alt = avatar;
+                
+                avatarItem.appendChild(img);
+                avatarItem.addEventListener('click', () => selectAvatar(avatar));
+                
+                avatarGrid.appendChild(avatarItem);
+            });
+
+            backgroundGrid.innerHTML = '';
+            bgData.backgrounds.forEach(color => {
+                const chip = document.createElement('div');
+                chip.className = 'color-chip';
+                chip.style.backgroundColor = color;
+                if (color.toLowerCase() === selectedBackground.toLowerCase()) {
+                    chip.classList.add('selected');
+                }
+                chip.addEventListener('click', () => selectBackground(color));
+                backgroundGrid.appendChild(chip);
+            });
+            
+            avatarModal.style.display = 'flex';
+        } catch (error) {
+            console.error('Failed to load avatars:', error);
+            alert('アバター画像の読み込みに失敗しました');
+        }
+    });
+
+    // モーダルを閉じる
+    closeAvatarModal.addEventListener('click', function() {
+        avatarModal.style.display = 'none';
+    });
+
+    // モーダルの外側をクリックして閉じる
+    avatarModal.addEventListener('click', function(e) {
+        if (e.target === avatarModal) {
+            avatarModal.style.display = 'none';
+        }
+    });
+
+    // アバター画像を選択
+    async function selectAvatar(avatarName) {
+        try {
+            const formData = new FormData();
+            formData.append('avatar_image', avatarName);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+            
+            const response = await fetch('{% url "update_avatar" %}', {
+                method: 'POST',
+                body: formData,
+            });
+            
+            const data = await response.json();
+            
+            if (data.ok) {
+                // 画像を更新
+                const img = avatarImage.querySelector('img');
+                img.src = `{% static 'home/images/django icon/' %}${avatarName}`;
+                selectedAvatar = avatarName;
+                // 選択状態のハイライト更新
+                avatarGrid.querySelectorAll('.avatar-item').forEach(el => {
+                    el.classList.toggle('selected', el.querySelector('img').alt === avatarName);
+                });
+                
+                // モーダルを閉じる
+                avatarModal.style.display = 'none';
+                
+                // 成功メッセージを表示
+                alert('アバター画像を更新しました');
+            } else {
+                alert('アバター画像の更新に失敗しました');
+            }
+        } catch (error) {
+            console.error('Failed to update avatar:', error);
+            alert('アバター画像の更新に失敗しました');
+        }
+    }
+
+    // 背景色を選択
+    async function selectBackground(color) {
+        try {
+            const formData = new FormData();
+            formData.append('background_color', color);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+            const response = await fetch('{% url "update_background" %}', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const data = await response.json();
+            if (data.ok) {
+                selectedBackground = color;
+                avatarImage.style.backgroundColor = color;
+                backgroundGrid.querySelectorAll('.color-chip').forEach(el => {
+                    el.classList.toggle('selected', el.style.backgroundColor.toLowerCase() === color.toLowerCase());
+                });
+            } else {
+                alert('背景色の更新に失敗しました');
+            }
+        } catch (error) {
+            console.error('Failed to update background:', error);
+            alert('背景色の更新に失敗しました');
+        }
+    }
+});
+</script>
 {% endblock %}

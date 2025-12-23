@@ -7,8 +7,27 @@ from django.db.models import Count, Q
 from django.urls import reverse
 from django.http import JsonResponse, HttpResponseForbidden
 from django.utils.text import slugify
-from .models import WordBook, WordCard, Tag, wordBookLike, WordBookBookmark
+from .models import WordBook, WordCard, Tag, wordBookLike, WordBookBookmark, UserProfile
 import re
+
+AVATAR_IMAGES = [
+    'account.png',
+    'account2.png',
+    'account3.png',
+    'account4.png',
+    'account5.png',
+    'account6.png',
+]
+
+BACKGROUND_COLORS = [
+    '#fffff0',  # ivory
+    '#e3d7a3',
+    '#d8f3dc',
+    '#f8d7da',
+    '#dbeafe',
+    '#fef3c7',
+    '#e0f2fe',
+]
 # マイページ
 @login_required
 def mypage(request):
@@ -25,6 +44,9 @@ def mypage(request):
     nickname = request.user.first_name or request.user.username
     likes_total = wordBookLike.objects.filter(wordbook__user=request.user).count()
     
+    # ユーザープロファイルを取得または作成
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+    
     context = {
         'my_wordbooks': my_wordbooks_preview,
         'my_wordbooks_count': my_wordbooks_count,
@@ -32,6 +54,8 @@ def mypage(request):
         'saved_wordbooks_count': saved_wordbooks_count,
         'nickname': nickname,
         'likes_total': likes_total,
+        'avatar_image': user_profile.avatar_image,
+        'background_color': user_profile.background_color,
     }
     return render(request, 'home/mypage.html', context)
 
@@ -103,8 +127,11 @@ def wordbook_list(request):
     # 人気の単語帳（いいね数順）
     popular_wordbooks = wordbooks_base.annotate(like_count=Count('likes')).order_by('-like_count', '-created_at')[:6]
     
-    # 既存の単語帳（新着順）
-    existing_wordbooks = wordbooks_base.annotate(like_count=Count('likes')).order_by('-created_at')[:6]
+    # 既存の単語帳（新着順、ログインユーザーが作成したもののみ）
+    if request.user.is_authenticated:
+        existing_wordbooks = WordBook.objects.filter(user=request.user).annotate(like_count=Count('likes')).order_by('-created_at')[:6]
+    else:
+        existing_wordbooks = []
     
     # 人気タグTOP10を取得（使用数順）
     popular_tags = Tag.objects.annotate(
@@ -362,3 +389,48 @@ def bookmarked_wordbooks_all(request):
         'from_source': 'bookmarks',
     }
     return render(request, 'home/wordbook_collection_full.html', context)
+
+
+# ---- Avatar APIs ----
+@login_required
+def get_available_avatars(request):
+    """利用可能なアバター画像一覧を返す"""
+    return JsonResponse({'avatars': AVATAR_IMAGES})
+
+
+@login_required
+def get_available_backgrounds(request):
+    """利用可能なアバター背景色一覧を返す"""
+    return JsonResponse({'backgrounds': BACKGROUND_COLORS})
+
+
+@login_required
+def update_avatar(request):
+    """ユーザーのアバター画像を更新"""
+    if request.method != 'POST':
+        return JsonResponse({'error': {'code': 'BadRequest', 'message': 'POST required'}}, status=400)
+    
+    avatar_image = request.POST.get('avatar_image', '').strip()
+    if avatar_image not in AVATAR_IMAGES:
+        return JsonResponse({'error': {'code': 'BadRequest', 'message': 'invalid avatar image'}}, status=400)
+    
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+    user_profile.avatar_image = avatar_image
+    user_profile.save()
+    return JsonResponse({'ok': True, 'avatar_image': user_profile.avatar_image})
+
+
+@login_required
+def update_background(request):
+    """ユーザーのアバター背景色を更新"""
+    if request.method != 'POST':
+        return JsonResponse({'error': {'code': 'BadRequest', 'message': 'POST required'}}, status=400)
+
+    background_color = request.POST.get('background_color', '').strip().lower()
+    if background_color not in [c.lower() for c in BACKGROUND_COLORS]:
+        return JsonResponse({'error': {'code': 'BadRequest', 'message': 'invalid background color'}}, status=400)
+
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+    user_profile.background_color = background_color
+    user_profile.save()
+    return JsonResponse({'ok': True, 'background_color': user_profile.background_color})
