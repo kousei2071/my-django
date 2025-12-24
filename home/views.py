@@ -419,8 +419,14 @@ def update_avatar(request):
     
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
     user_profile.avatar_image = avatar_image
+    
+    # プリセット画像が選択された場合、カスタムアバターをクリアする
+    if user_profile.custom_avatar:
+        user_profile.custom_avatar.delete()
+        user_profile.custom_avatar = None
+        
     user_profile.save()
-    return JsonResponse({'ok': True, 'avatar_image': user_profile.avatar_image})
+    return JsonResponse({'ok': True, 'avatar_image': user_profile.avatar_image, 'avatar_url': user_profile.get_avatar_url()})
 
 
 @login_required
@@ -437,3 +443,39 @@ def update_background(request):
     user_profile.background_color = background_color
     user_profile.save()
     return JsonResponse({'ok': True, 'background_color': user_profile.background_color})
+
+
+@login_required
+def upload_custom_avatar(request):
+    """カスタムアバター画像をアップロード"""
+    if request.method != 'POST':
+        return JsonResponse({'error': {'code': 'BadRequest', 'message': 'POST required'}}, status=400)
+    
+    if 'avatar_file' not in request.FILES:
+        return JsonResponse({'error': {'code': 'BadRequest', 'message': 'No file provided'}}, status=400)
+    
+    file = request.FILES['avatar_file']
+    
+    # ファイルタイプチェック
+    allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    if file.content_type not in allowed_types:
+        return JsonResponse({'error': {'code': 'BadRequest', 'message': 'Invalid file type. Only images are allowed'}}, status=400)
+    
+    # ファイルサイズチェック（5MB制限）
+    if file.size > 5 * 1024 * 1024:
+        return JsonResponse({'error': {'code': 'BadRequest', 'message': 'File too large. Max 5MB'}}, status=400)
+    
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+    
+    # 既存のカスタムアバターがある場合は削除
+    if user_profile.custom_avatar:
+        user_profile.custom_avatar.delete()
+    
+    # 新しいアバターを保存
+    user_profile.custom_avatar = file
+    user_profile.save()
+    
+    return JsonResponse({
+        'ok': True,
+        'avatar_url': user_profile.get_avatar_url()
+    })

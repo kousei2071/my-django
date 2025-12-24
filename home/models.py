@@ -16,12 +16,19 @@ class UserProfile(models.Model):
         ('account7.png', 'Account 7'),
         ('account8.png', 'Account 8'),
     ])
+    custom_avatar = models.ImageField(upload_to='avatars/', blank=True, null=True, verbose_name='カスタムアバター画像')
     background_color = models.CharField(max_length=7, default='#fffff0')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.user.username}'s Profile"
+    
+    def get_avatar_url(self):
+        """アバター画像のURLを取得"""
+        if self.custom_avatar:
+            return self.custom_avatar.url
+        return f'/static/home/images/django icon/{self.avatar_image}'
 
 
 class Tag(models.Model):
