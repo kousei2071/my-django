@@ -2,11 +2,21 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from home.models import WordBook, WordCard, Tag
 from django.utils.text import slugify
+import random
 
 class Command(BaseCommand):
     help = 'Create sample wordbooks and wordcards'
 
     def handle(self, *args, **options):
+        AVATAR_IMAGES = [
+            'account.png', 'account2.png', 'account3.png', 'account4.png',
+            'account5.png', 'account6.png', 'account7.png', 'account8.png',
+        ]
+
+        BACKGROUND_COLORS = [
+            '#fffff0', '#e3d7a3', '#d8f3dc', '#f8d7da', '#dbeafe', '#fef3c7', '#e0f2fe',
+        ]
+
         # 既定タグ
         default_tags = [
             {'name': '英検3級', 'slug': 'eiken-3kyu'},
@@ -55,6 +65,10 @@ class Command(BaseCommand):
                 user.save()
                 self.stdout.write(f'Created user: {username}')
             sample_users.append(user)
+
+        # 既存のサンプル単語帳を削除（作り直しのリクエストに対応）
+        self.stdout.write('Deleting existing sample wordbooks...')
+        WordBook.objects.filter(user__username__startswith='sample_user_').delete()
 
         # サンプル単語帳データ
         wordbooks_data = [
@@ -149,33 +163,37 @@ class Command(BaseCommand):
         for i, wordbook_data in enumerate(wordbooks_data):
             user = sample_users[i % len(sample_users)]
             
-            # 既に同じタイトルの単語帳が存在するかチェック
-            wordbook, created = WordBook.objects.get_or_create(
+            # ランダムなアバターと背景色を選択
+            random_avatar = random.choice(AVATAR_IMAGES)
+            random_bg = random.choice(BACKGROUND_COLORS)
+            
+            # 単語帳を作成
+            wordbook = WordBook.objects.create(
                 title=wordbook_data['title'],
                 user=user,
-                defaults={'description': wordbook_data['description']}
+                description=wordbook_data['description'],
+                avatar_image=random_avatar,
+                background_color=random_bg,
+                is_ai_generated=True
             )
             
-            if created:
-                self.stdout.write(f'Created wordbook: {wordbook.title}')
-                
-                # タグを割り当て
-                tags = wordbook_data.get('tags', [])
-                for tag_name in tags:
-                    tag = Tag.objects.get(name=tag_name)
-                    wordbook.tags.add(tag)
-                
-                # 単語カードを作成
-                for front, back in wordbook_data['cards']:
-                    WordCard.objects.create(
-                        wordbook=wordbook,
-                        front_text=front,
-                        back_text=back
-                    )
-                
-                self.stdout.write(f'  - Added {len(wordbook_data["cards"])} cards')
-                self.stdout.write(f'  - Added tags: {", ".join(tags)}')
-            else:
-                self.stdout.write(f'Wordbook already exists: {wordbook.title}')
+            self.stdout.write(f'Created wordbook: {wordbook.title} (Avatar: {random_avatar}, BG: {random_bg})')
+            
+            # タグを割り当て
+            tags = wordbook_data.get('tags', [])
+            for tag_name in tags:
+                tag = Tag.objects.get(name=tag_name)
+                wordbook.tags.add(tag)
+            
+            # 単語カードを作成
+            for front, back in wordbook_data['cards']:
+                WordCard.objects.create(
+                    wordbook=wordbook,
+                    front_text=front,
+                    back_text=back
+                )
+            
+            self.stdout.write(f'  - Added {len(wordbook_data["cards"])} cards')
+            self.stdout.write(f'  - Added tags: {", ".join(tags)}')
 
         self.stdout.write(self.style.SUCCESS('Successfully created sample data!'))
