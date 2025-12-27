@@ -1,30 +1,62 @@
 {% extends 'home/base.html' %}
+{% load static %}
 
 {% block title %}単語カードを追加 - TANKORE{% endblock %}
 
 {% block content %}
 <div class="container">
-    <div class="form-container">
-        <h1>{{ wordbook.title }} に単語カードを追加</h1>
-        
-        <form method="post" class="create-form">
-            {% csrf_token %}
+    <div class="wordcard-create-layout">
+        <div class="form-container">
+            <h1>{{ wordbook.title }} に単語カードを追加</h1>
             
-            <div class="form-group">
-                <label for="front_text">英単語</label>
-                <input type="text" name="front_text" id="front_text" class="form-input" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="back_text">意味</label>
-                <textarea name="back_text" id="back_text" class="form-textarea" rows="3" required></textarea>
-            </div>
-            
-            <div class="form-actions">
-                <a href="{% url 'wordbook_detail' wordbook.pk %}" class="btn btn-secondary">キャンセル</a>
-                <button type="submit" class="btn btn-primary">追加して続ける</button>
-            </div>
-        </form>
+            <form method="post" class="create-form">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="front_text">英単語</label>
+                    <input type="text" name="front_text" id="front_text" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="back_text">意味</label>
+                    <textarea name="back_text" id="back_text" class="form-textarea" rows="3" required></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <a href="{% url 'wordbook_detail' wordbook.pk %}" class="btn btn-secondary">キャンセル</a>
+                    <button type="submit" class="btn btn-primary">追加して続ける</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="starred-cards-sidebar">
+            <h2>スターしたカードから追加</h2>
+            {% if starred_cards %}
+                <div class="starred-cards-grid">
+                    {% for star in starred_cards %}
+                        <div class="mini-wordcard">
+                            <div class="wordcard-star-container">
+                                <img src="{% static 'home/images/star.png' %}" alt="star" class="star-icon-img">
+                            </div>
+                            <div class="mini-wordcard-front">
+                                <p>{{ star.wordcard.front_text }}</p>
+                            </div>
+                            <div class="mini-wordcard-back">
+                                <p>{{ star.wordcard.back_text|truncatechars:30 }}</p>
+                            </div>
+                            <form method="post" action="{% url 'import_starred_card' wordbook.pk star.wordcard.id %}" class="mini-wordcard-action">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-import-mini">
+                                    <i class="fa-solid fa-plus"></i> 追加
+                                </button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="empty-message">スターしたカードはありません。</p>
+            {% endif %}
+        </div>
     </div>
 </div>
 {% endblock %}
