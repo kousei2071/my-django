@@ -134,7 +134,7 @@ def wordbook_list(request):
     popular_wordbooks = wordbooks_base.annotate(like_count=Count('likes')).order_by('-like_count', '-created_at')[:6]
     
     # AIの単語帳（新着順、AI生成された単語帳のみ）
-    ai_wordbooks = wordbooks_base.filter(is_ai_generated=True).annotate(like_count=Count('likes')).order_by('-created_at')[:6]
+    ai_wordbooks = wordbooks_base.filter(is_ai_generated=True).annotate(like_count=Count('likes')).order_by('-created_at')[:12]
     
     # 人気タグTOP10を取得（使用数順）
     popular_tags = Tag.objects.annotate(

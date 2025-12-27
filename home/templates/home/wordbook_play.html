@@ -114,7 +114,22 @@ function renderQuizQuestion() {
         showNotice('選択肢を生成できませんでした。カード数を確認してください。');
         return;
     }
-    document.getElementById('quizQuestion').textContent = q.front;
+    
+    const questionEl = document.getElementById('quizQuestion');
+    questionEl.textContent = q.front;
+    
+    // 質問文の長さに応じてクラスを設定
+    const questionLength = q.front.length;
+    if (questionLength > 30) {
+        questionEl.setAttribute('data-length', 'extra-long');
+    } else if (questionLength > 20) {
+        questionEl.setAttribute('data-length', 'long');
+    } else if (questionLength > 12) {
+        questionEl.setAttribute('data-length', 'medium');
+    } else {
+        questionEl.removeAttribute('data-length');
+    }
+    
     document.getElementById('quizCount').textContent = `${quizState.currentIndex + 1}/${quizState.questions.length}`;
 
     const optsContainer = document.getElementById('quizOptions');
@@ -125,6 +140,17 @@ function renderQuizQuestion() {
         btn.className = `quiz-option ${index % 2 === 0 ? 'pink' : 'green'}`;
         btn.textContent = opt.back;
         btn.onclick = () => handleQuizAnswer(opt, false);
+        
+        // ボタンテキストの長さに応じてクラスを設定
+        const optionLength = opt.back.length;
+        if (optionLength > 30) {
+            btn.setAttribute('data-length', 'extra-long');
+        } else if (optionLength > 20) {
+            btn.setAttribute('data-length', 'long');
+        } else if (optionLength > 12) {
+            btn.setAttribute('data-length', 'medium');
+        }
+        
         optsContainer.appendChild(btn);
     });
 

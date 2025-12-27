@@ -71,7 +71,11 @@
                             <button class="btn-star {% if card.id in starred_card_ids %}is-starred{% endif %}" 
                                     onclick="toggleStar({{ card.id }}, this)" 
                                     title="星をつける">
-                                <img src="{% static 'home/images/star.png' %}" alt="star" class="star-icon-img">
+                                {% if card.id in starred_card_ids %}
+                                    <img src="{% static 'home/images/star.png' %}" alt="star" class="star-icon-img">
+                                {% else %}
+                                    <img src="{% static 'home/images/starblack.png' %}" alt="star" class="star-icon-img">
+                                {% endif %}
                             </button>
                         </div>
                         <div class="wordcard-front">
@@ -362,10 +366,13 @@ function toggleStar(cardId, btn) {
     })
     .then(res => res.json())
     .then(data => {
+        const img = btn.querySelector('.star-icon-img');
         if (data.is_starred) {
             btn.classList.add('is-starred');
+            img.src = "{% static 'home/images/star.png' %}";
         } else {
             btn.classList.remove('is-starred');
+            img.src = "{% static 'home/images/starblack.png' %}";
         }
     })
     .catch(err => console.error('Star toggle error:', err));
