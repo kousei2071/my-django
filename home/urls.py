@@ -16,6 +16,11 @@ urlpatterns = [
     path('tags/', views.tags_list, name='tags_list'),
     path('tags/create/', views.tag_create, name='tag_create'),
     path('tags/<int:pk>/delete/', views.tag_delete, name='tag_delete'),
+    # Admin (管理者専用)
+    path('admin/dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin/wordbooks/<int:pk>/delete/', views.admin_delete_wordbook, name='admin_delete_wordbook'),
+    path('admin/wordbooks/<int:pk>/toggle-pin/', views.admin_toggle_pin, name='admin_toggle_pin'),
+    # User registration & authentication
     path('register/', views.register_view, name='register'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
