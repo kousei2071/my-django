@@ -30,6 +30,7 @@ urlpatterns = [
     path('wordbooks/<int:pk>/play/', views.wordbook_play, name='wordbook_play'),
     path('wordbooks/<int:pk>/tags/', views.wordbook_update_tags, name='wordbook_update_tags'),
     path('wordbooks/<int:pk>/bookmark/', views.wordbook_bookmark_toggle, name='wordbook_bookmark'),
+    path('wordbooks/<int:pk>/publish/', views.wordbook_toggle_public, name='wordbook_toggle_public'),
     path('wordbooks/<int:wordbook_pk>/cards/create/', views.wordcard_create, name='wordcard_create'),
     path('wordbooks/<int:wordbook_pk>/cards/import/<int:card_id>/', views.import_starred_card, name='import_starred_card'),
     path('wordcards/<int:pk>/delete/', views.wordcard_delete, name='wordcard_delete'),

@@ -30,6 +30,26 @@
                     <button class="btn-edit-tags" onclick="openTagModal()">タグを編集</button>
                 {% endif %}
             </div>
+
+            {% if can_edit %}
+            <div class="publish-controls">
+                <div class="publish-status">
+                    <span class="publish-label">公開設定</span>
+                    <span class="publish-state {% if wordbook.is_public %}state-public{% else %}state-private{% endif %}">
+                        {% if wordbook.is_public %}公開中{% else %}非公開{% endif %}
+                    </span>
+                </div>
+                <form method="post" action="{% url 'wordbook_toggle_public' wordbook.pk %}" class="publish-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="{% if wordbook.is_public %}unpublish{% else %}publish{% endif %}">
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button type="submit" class="btn btn-secondary">
+                        {% if wordbook.is_public %}非公開にする{% else %}公開する{% endif %}
+                    </button>
+                </form>
+                <p class="publish-note">公開すると他のユーザーがこの単語帳を閲覧・プレイできます。</p>
+            </div>
+            {% endif %}
             
             <div class="like-action action-buttons">
             {% if user.is_authenticated %}
