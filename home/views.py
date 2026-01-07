@@ -173,6 +173,11 @@ def wordbook_list(request):
         usage_count=Count('wordbooks')
     ).filter(usage_count__gt=0).order_by('-usage_count', 'name')[:10]
     
+    # 全タグをカテゴリ別に分類（サイドバー用）
+    all_tags = Tag.objects.annotate(
+        usage_count=Count('wordbooks')
+    ).filter(usage_count__gt=0).order_by('-usage_count', 'name')[:50]  # 上位50タグ
+    
     # 選択中のタグ名のリストを作成
     selected_tag_names = [tag.name for tag in selected_tags]
     
@@ -184,6 +189,7 @@ def wordbook_list(request):
         'popular_wordbooks': popular_wordbooks,
         'ai_wordbooks': ai_wordbooks,
         'popular_tags': popular_tags,  # 人気タグを追加
+        'all_tags': all_tags,  # サイドバー用全タグ
         'search_query': search_query,  # 検索クエリを追加
         'selected_tags': selected_tags,  # 選択中のタグ
         'selected_tag_names': selected_tag_names,  # 選択中のタグ名リスト

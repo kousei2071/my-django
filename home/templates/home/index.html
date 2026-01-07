@@ -3,41 +3,91 @@
 {% block title %}TANKORE - トップページ{% endblock %}
 
 {% block content %}
-<div class="hero">
-    <div class="hero-content">
-        <h1 class="hero-title">TANKORE</h1>
-        <p class="hero-subtitle">自分だけの英単語帳を作ろう</p>
-        <div class="hero-buttons">
-            {% if user.is_authenticated %}
-                <a href="{% url 'wordbook_list' %}" class="btn btn-primary">マイページへ</a>
-            {% else %}
-                <a href="{% url 'register' %}" class="btn btn-primary">今すぐ始める</a>
-                <a href="{% url 'login' %}" class="btn btn-secondary">ログイン</a>
-            {% endif %}
+<div class="index-layout">
+    <!-- 左側サイドバー（タグ検索） -->
+    <aside class="tags-sidebar">
+        <div class="tags-sidebar-sticky">
+            <div class="tags-sidebar-header">
+                {% if selected_tags %}
+                    <a href="{% url 'home' %}" class="tags-clear-btn">クリア</a>
+                {% endif %}
+            </div>
+            
+            <div class="tags-sidebar-scroll">
+                {% if all_tags %}
+                    <div class="tags-group">
+                        <h4 class="tags-group-title">人気のタグ</h4>
+                        <div class="tags-list">
+                            {% for tag in all_tags|slice:":10" %}
+                            <a href="?tag={{ tag.name }}" 
+                               class="tag-item {% if tag.name in selected_tag_names %}active{% endif %}">
+                                <span class="tag-name">{{ tag.name }}</span>
+                                <span class="tag-count">{{ tag.usage_count }}</span>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    {% if all_tags|length > 10 %}
+                    <div class="tags-group">
+                        <h4 class="tags-group-title">すべてのタグ</h4>
+                        <div class="tags-list">
+                            {% for tag in all_tags|slice:"10:" %}
+                            <a href="?tag={{ tag.name }}" 
+                               class="tag-item {% if tag.name in selected_tag_names %}active{% endif %}">
+                                <span class="tag-name">{{ tag.name }}</span>
+                                <span class="tag-count">{{ tag.usage_count }}</span>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <p class="tags-empty">タグがまだありません</p>
+                {% endif %}
+            </div>
         </div>
+    </aside>
+
+    <!-- メインコンテンツ -->
+    <div class="index-main">
+        <div class="hero">
+            <div class="hero-content">
+                <h1 class="hero-title">TANKORE</h1>
+                <p class="hero-subtitle">自分だけの英単語帳を作ろう</p>
+                <div class="hero-buttons">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'wordbook_list' %}" class="btn btn-primary">マイページへ</a>
+                    {% else %}
+                        <a href="{% url 'register' %}" class="btn btn-primary">今すぐ始める</a>
+                        <a href="{% url 'login' %}" class="btn btn-secondary">ログイン</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <section class="features">
+            <div class="container">
+                <h2 class="section-title">TANKOREの特徴</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">📚</div>
+                        <h3>自分だけの単語帳</h3>
+                        <p>覚えたい単語を自由に追加して、オリジナルの単語帳を作成できます</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🖼️</div>
+                        <h3>画像で覚える</h3>
+                        <p>単語カードに画像を追加して、視覚的に単語を記憶できます</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📱</div>
+                        <h3>どこでも学習</h3>
+                        <p>スマホやタブレットでいつでもどこでも学習できます</p>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
 </div>
-
-<section class="features">
-    <div class="container">
-        <h2 class="section-title">TANKOREの特徴</h2>
-        <div class="feature-grid">
-            <div class="feature-card">
-                <div class="feature-icon">📚</div>
-                <h3>自分だけの単語帳</h3>
-                <p>覚えたい単語を自由に追加して、オリジナルの単語帳を作成できます</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">🖼️</div>
-                <h3>画像で覚える</h3>
-                <p>単語カードに画像を追加して、視覚的に単語を記憶できます</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">📱</div>
-                <h3>どこでも学習</h3>
-                <p>スマホやタブレットでいつでもどこでも学習できます</p>
-            </div>
-        </div>
-    </div>
-</section>
 {% endblock %}

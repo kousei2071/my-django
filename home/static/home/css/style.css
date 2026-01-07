@@ -29,20 +29,20 @@ body {
 }
 
 .header .container {
-    max-width: 1200px;
+    max-width: 100%;
     margin: 0 auto;
-    padding: 0 1rem;
+    padding: 0 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 1.5rem;
+    gap: 2rem;
     position: relative;
 }
 
 /* ヘッダー検索バー */
 .header-search-form {
     flex: 1;
-    max-width: 500px;
+    max-width: 800px;
 }
 
 .header-search-wrapper {
@@ -328,6 +328,194 @@ body {
     padding: 0 1rem;
 }
 
+/* Index レイアウト（サイドバー付き） */
+.index-layout {
+    display: flex;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    align-items: flex-start;
+}
+
+.index-main {
+    flex: 1;
+    min-width: 0;
+    padding: 0 2rem;
+}
+
+/* タグ検索サイドバー（左側） */
+.tags-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    order: -1;
+    padding-left: 1rem;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+}
+
+.tags-sidebar-sticky {
+    position: relative;
+    top: 0;
+    background: #FAFAFA;
+    border-radius: 0;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+}
+
+.tags-sidebar-header {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0 0 0.5rem 0;
+    background: transparent;
+    border-bottom: none;
+}
+
+.tags-sidebar-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+    display: none;
+}
+
+.tags-clear-btn {
+    background: #FFE4E9;
+    color: #FF69B4;
+    padding: 0.3rem 0.7rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.tags-clear-btn:hover {
+    background: #FFB5C0;
+    color: white;
+    transform: scale(1.05);
+}
+
+.tags-sidebar-scroll {
+    overflow-y: auto;
+    padding: 0;
+    flex: 1;
+    scrollbar-width: thin;
+    scrollbar-color: #E0E0E0 transparent;
+}
+
+.tags-sidebar-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tags-sidebar-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.tags-sidebar-scroll::-webkit-scrollbar-thumb {
+    background: #E0E0E0;
+    border-radius: 3px;
+}
+
+.tags-sidebar-scroll::-webkit-scrollbar-thumb:hover {
+    background: #C0C0C0;
+}
+
+.tags-group {
+    margin-bottom: 1.5rem;
+}
+
+.tags-group:last-child {
+    margin-bottom: 0;
+}
+
+.tags-group-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #E5E5E5;
+}
+
+.tags-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.tag-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.7rem;
+    background: transparent;
+    border: 1px solid #E5E5E5;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #222;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.tag-item:hover {
+    background: #F8F8F8;
+    border-color: #FFB5C0;
+    transform: translateX(3px);
+}
+
+.tag-item.active {
+    background: #FFE4E9;
+    border-color: #FFB5C0;
+    color: #FF69B4;
+    font-weight: 600;
+}
+
+.tag-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tag-count {
+    background: rgba(0, 0, 0, 0.08);
+    color: #444;
+    padding: 0.15rem 0.45rem;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-left: 0.5rem;
+}
+
+.tag-item.active .tag-count {
+    background: rgba(255, 105, 180, 0.2);
+    color: #FF69B4;
+}
+
+.tags-empty {
+    text-align: center;
+    color: #999;
+    font-size: 0.85rem;
+    padding: 2rem 1rem;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 1024px) {
+    .tags-sidebar {
+        display: none;
+    }
+    
+    .index-layout {
+        display: block;
+    }
+}
+
 /* ヒーローセクション */
 .hero {
     background: linear-gradient(135deg, #FFB5C0 0%, #FFA6B3 100%);
@@ -411,7 +599,7 @@ body {
 
 .section-title {
     font-size: 2rem;
-    text-align: center;
+    text-align: left;
     margin-bottom: 2rem;
 }
 
@@ -644,9 +832,16 @@ body {
 }
 
 .wordbook-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    display: flex;
     gap: 1.5rem;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.wordbook-grid::-webkit-scrollbar {
+    display: none;
 }
 
 .wordbook-card {
@@ -657,6 +852,8 @@ body {
     text-decoration: none;
     color: #333;
     transition: transform 0.3s, box-shadow 0.3s;
+    min-width: 250px;
+    flex-shrink: 0;
 }
 
 .wordbook-card:hover {
@@ -1274,14 +1471,17 @@ body {
 
 /* ===== マイページ: 単語帳カードをポップで見やすく ===== */
 .wordbook-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    display: flex;
     gap: 1.25rem;
+    overflow-x: auto;
+    padding-bottom: 1rem;
 }
 
 /* マイページのグリッドは横幅を広めに */
 .mypage-layout .wordbook-grid {
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    display: flex;
+    gap: 1.5rem;
+    overflow-x: auto;
 }
 
 /* 保存した単語帳を横方向に並べる（グリッド） */
