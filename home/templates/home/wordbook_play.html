@@ -40,20 +40,37 @@
     </div>
 
     <div id="quizFeedback" class="quiz-section" style="display: none;">
-        <div class="quiz-feedback-card">
-            <h3 id="quizFeedbackTitle">正解</h3>
+        <div class="quiz-feedback-container">
+            <div class="quiz-feedback-icon" id="quizFeedbackIcon"></div>
+            <h3 id="quizFeedbackTitle" class="quiz-feedback-title">正解</h3>
             <p id="quizFeedbackAnswer" class="quiz-feedback-answer"></p>
-            <button type="button" class="btn btn-primary" onclick="nextQuizQuestion()">次の問題へ</button>
+            <div class="quiz-countdown" id="quizCountdown">3</div>
         </div>
     </div>
 
     <div id="quizResult" class="quiz-section" style="display: none;">
-        <h2>結果</h2>
-        <p id="quizScore" class="quiz-score">0 / 0</p>
-        <div id="quizMistList" class="quiz-miss-list"></div>
-        <div class="quiz-result-actions">
-            <button type="button" class="btn btn-primary" onclick="restartPlay('all')">もう一度プレイ</button>
-            <button type="button" id="reviewReplayBtn" class="btn btn-secondary" onclick="restartPlay('review')">間違えた問題だけ復習</button>
+        <div class="quiz-result-container">
+            <div class="quiz-emoji" id="quizEmoji">😄</div>
+            <h2 class="quiz-result-heading">おつかれさまでした！</h2>
+            <div class="quiz-stats">
+                <div class="quiz-stat-card correct">
+                    <div class="stat-icon">✓</div>
+                    <div class="stat-value" id="quizCorrectCount">0</div>
+                    <div class="stat-label">正解数</div>
+                </div>
+                <div class="quiz-stat-card incorrect" id="incorrectCard" onclick="toggleMistakesList()" style="cursor: pointer;">
+                    <div class="stat-icon">✗</div>
+                    <div class="stat-value" id="quizIncorrectCount">0</div>
+                    <div class="stat-label">間違えた問題</div>
+                    <div class="stat-arrow" id="mistakesArrow">▼</div>
+                </div>
+            </div>
+            <div id="quizMistList" class="quiz-miss-list" style="display: none;"></div>
+            <div class="quiz-result-actions">
+                <button type="button" class="btn btn-primary" onclick="restartPlay('all')">もう一度プレイ</button>
+                <button type="button" id="reviewReplayBtn" class="btn btn-secondary" onclick="restartPlay('review')">間違えた問題だけ復習</button>
+                <a class="btn btn-outline" href="{% url 'wordbook_detail' wordbook.pk %}">単語帳に戻る</a>
+            </div>
         </div>
     </div>
 </div>
@@ -72,16 +89,18 @@ const quizState = {
     mistakes: [],
     mode: modeParam,
     timeLimit: difficultyParam === 'unlimited' ? null : parseInt(difficultyParam, 10) || 15,
-    timerId: null
+    timerId: null,
+    countdownTimer: null
 };
 
 const noticeBox = document.getElementById('quizNotice');
 
 function initQuiz() {
     const source = quizState.mode === 'review' ? loadStoredMistakes() : quizCards;
-    if (source.length < 4) {
+    const minRequired = quizState.mode === 'review' ? 1 : 4;
+    if (source.length < minRequired) {
         showNotice(quizState.mode === 'review'
-            ? '間違えた問題が4件以上あるときに復習できます。通常プレイで問題を解いてください。'
+            ? '間違えた問題がありません。通常プレイで問題を解いてください。'
             : 'プレイするにはカードが4枚以上必要です。');
         return;
     }
@@ -179,6 +198,9 @@ function handleQuizAnswer(selectedOption, timedOut) {
 }
 
 function nextQuizQuestion() {
+    if (quizState.countdownTimer) {
+        clearInterval(quizState.countdownTimer);
+    }
     quizState.currentIndex += 1;
     if (quizState.currentIndex >= quizState.questions.length) {
         showQuizResult();
@@ -189,33 +211,98 @@ function nextQuizQuestion() {
 }
 
 function showQuizFeedback(title, answerText) {
+    const isCorrect = title === '正解';
+    const iconEl = document.getElementById('quizFeedbackIcon');
+    iconEl.className = 'quiz-feedback-icon ' + (isCorrect ? 'correct' : 'incorrect');
+    iconEl.innerHTML = isCorrect ? '✓' : '✗';
+    
     document.getElementById('quizFeedbackTitle').textContent = title;
     document.getElementById('quizFeedbackAnswer').textContent = answerText;
+    
     setSection('quizFeedback');
+    startCountdown();
+}
+
+function startCountdown() {
+    const countdownEl = document.getElementById('quizCountdown');
+    let count = 3;
+    countdownEl.textContent = count;
+    
+    if (quizState.countdownTimer) {
+        clearInterval(quizState.countdownTimer);
+    }
+    
+    quizState.countdownTimer = setInterval(() => {
+        count--;
+        if (count > 0) {
+            countdownEl.textContent = count;
+        } else {
+            clearInterval(quizState.countdownTimer);
+            nextQuizQuestion();
+        }
+    }, 1000);
 }
 
 function showQuizResult() {
     saveMistakes();
-    document.getElementById('quizScore').textContent = `${quizState.correctCount} / ${quizState.questions.length}`;
+    const total = quizState.questions.length;
+    const correct = quizState.correctCount;
+    const incorrect = quizState.mistakes.length;
+    const accuracy = correct / total;
+    
+    // 顔文字を設定
+    const emojiEl = document.getElementById('quizEmoji');
+    if (accuracy === 1) {
+        emojiEl.textContent = '😍'; // 全問正解
+    } else if (accuracy >= 0.5) {
+        emojiEl.textContent = '😄'; // 半分以上正解
+    } else {
+        emojiEl.textContent = '😢'; // 半分以上間違えた
+    }
+    
+    // 統計カードを更新
+    document.getElementById('quizCorrectCount').textContent = `${correct}/${total}`;
+    document.getElementById('quizIncorrectCount').textContent = incorrect;
 
     const missList = document.getElementById('quizMistList');
     missList.innerHTML = '';
-    if (quizState.mistakes.length === 0) {
-        missList.innerHTML = '<p class="quiz-hint">全問正解！すばらしいです。</p>';
-    } else {
-        missList.innerHTML = '<h4>間違えた問題</h4>';
+    if (quizState.mistakes.length > 0) {
+        missList.innerHTML = `<h4 class="quiz-mistakes-heading">間違えた問題の詳細</h4>`;
         quizState.mistakes.forEach(m => {
             const item = document.createElement('div');
             item.className = 'quiz-miss-item';
-            item.innerHTML = `<div class="miss-front">${m.front}</div><div class="miss-back">${m.back}</div>`;
+            item.innerHTML = `<div class="miss-label">Q.</div><div class="miss-front">${m.front}</div><div class="miss-label">A.</div><div class="miss-back">${m.back}</div>`;
             missList.appendChild(item);
         });
     }
 
     const reviewReplayBtn = document.getElementById('reviewReplayBtn');
-    reviewReplayBtn.disabled = quizState.mistakes.length < 4;
+    if (quizState.mistakes.length === 0) {
+        reviewReplayBtn.style.display = 'none';
+        // 間違いが0の場合はカードをクリック不可に
+        const incorrectCard = document.getElementById('incorrectCard');
+        incorrectCard.style.cursor = 'default';
+        incorrectCard.onclick = null;
+        document.getElementById('mistakesArrow').style.display = 'none';
+    } else {
+        reviewReplayBtn.style.display = 'inline-block';
+        reviewReplayBtn.disabled = false;
+    }
 
     setSection('quizResult');
+}
+
+function toggleMistakesList() {
+    const missList = document.getElementById('quizMistList');
+    const arrow = document.getElementById('mistakesArrow');
+    
+    if (missList.style.display === 'none') {
+        missList.style.display = 'block';
+        arrow.textContent = '▲';
+    } else {
+        missList.style.display = 'none';
+        arrow.textContent = '▼';
+    }
 }
 
 function restartPlay(mode) {
@@ -265,7 +352,18 @@ function stopQuizTimer() {
 
 function buildOptions(current) {
     const others = shuffleArray(quizCards.filter(c => c.id !== current.id));
-    if (others.length < 3) return null;
+    if (others.length < 3) {
+        // カード数が少ない場合、重複を許可して選択肢を生成
+        const availableCards = [current, ...others];
+        const options = [current];
+        while (options.length < 4 && options.length <= availableCards.length) {
+            const randomCard = availableCards[Math.floor(Math.random() * availableCards.length)];
+            if (!options.find(opt => opt.id === randomCard.id)) {
+                options.push(randomCard);
+            }
+        }
+        return shuffleArray(options);
+    }
     const options = [current, ...others.slice(0, 3)];
     return shuffleArray(options);
 }
