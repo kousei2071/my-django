@@ -358,7 +358,7 @@ body {
 
 /* タグ検索サイドバー（左側） */
 .tags-sidebar {
-    width: 280px;
+    width: 380px;
     flex-shrink: 0;
     order: -1;
     padding-left: 1rem;
