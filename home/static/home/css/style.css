@@ -26,33 +26,6 @@ body {
     padding: 0;
 }
 
-/* 表示制御ユーティリティ */
-.mobile-only {
-    display: none;
-}
-
-.desktop-only {
-    display: block;
-}
-
-@media (max-width: 768px) {
-    body {
-        padding-bottom: 74px;
-    }
-
-    .main-content {
-        padding: 1.25rem 0 4.5rem;
-    }
-
-    .mobile-only {
-        display: block;
-    }
-
-    .desktop-only {
-        display: none;
-    }
-}
-
 .main-content {
     flex: 1 0 auto;
     padding: 2rem 0;
@@ -69,24 +42,20 @@ body {
 }
 
 .header .container {
-    max-width: 960px;
+    max-width: 100%;
     margin: 0 auto;
-    padding: 0 1.25rem;
+    padding: 0 2rem;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    gap: 1rem;
+    gap: 2rem;
     position: relative;
-}
-
-.header-only-search {
-    justify-content: center;
 }
 
 /* ヘッダー検索バー */
 .header-search-form {
     flex: 1;
-    max-width: 960px;
+    max-width: 1200px;
 }
 
 .header-search-wrapper {
@@ -144,11 +113,11 @@ body {
 @media (max-width: 768px) {
     .header .container {
         flex-wrap: wrap;
-        gap: 0.5rem;
+        gap: 0.75rem;
     }
     
     .header-search-form {
-        order: 1;
+        order: 3;
         flex: 1 1 100%;
         max-width: 100%;
     }
@@ -364,57 +333,6 @@ body {
     color: #333;
 }
 
-.menu-btn {
-    display: none;
-}
-
-/* モバイルボトムナビ */
-.mobile-bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: #FFB5C0;
-    border-top: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 -6px 16px rgba(0, 0, 0, 0.12);
-    display: none;
-    z-index: 2000;
-}
-
-.mobile-bottom-nav .mobile-nav-item {
-    flex: 1;
-    text-align: center;
-    padding: 0.65rem 0.25rem 0.45rem;
-    color: #fff;
-    text-decoration: none;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    align-items: center;
-    font-weight: 800;
-    font-size: 0.8rem;
-    transition: color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
-}
-
-.mobile-bottom-nav .mobile-nav-item i {
-    font-size: 1.2rem;
-}
-
-.mobile-bottom-nav .mobile-nav-item:active {
-    transform: translateY(1px) scale(0.98);
-    opacity: 0.9;
-}
-
-.mobile-bottom-nav .mobile-nav-item:hover {
-    color: #fff;
-}
-
-@media (max-width: 768px) {
-    .mobile-bottom-nav {
-        display: flex;
-    }
-}
-
 /* メインコンテンツ */
 
 .container {
@@ -611,110 +529,6 @@ body {
     }
 }
 
-/* モバイル用タグスライダー */
-.mobile-tags-scroller {
-    display: none;
-    background: #fff;
-    border-radius: 14px;
-    padding: 0.75rem 1rem 0.5rem;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-    margin-bottom: 1.25rem;
-}
-
-.mobile-tags-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-}
-
-.mobile-tags-label {
-    font-weight: 800;
-    color: #FF69B4;
-    font-size: 0.95rem;
-}
-
-.mobile-tags-clear {
-    color: #FF6B6B;
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 0.9rem;
-}
-
-.mobile-tags-list {
-    display: flex;
-    gap: 0.5rem;
-    overflow-x: auto;
-    padding-bottom: 0.25rem;
-    scrollbar-width: thin;
-    scrollbar-color: #FFB5C0 #FFF9F9;
-}
-
-.mobile-tags-list::-webkit-scrollbar {
-    height: 6px;
-}
-
-.mobile-tags-list::-webkit-scrollbar-track {
-    background: #FFF9F9;
-    border-radius: 3px;
-}
-
-.mobile-tags-list::-webkit-scrollbar-thumb {
-    background: #FFB5C0;
-    border-radius: 3px;
-}
-
-.mobile-tag-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    background: #FFF5F8;
-    color: #444;
-    padding: 0.45rem 0.9rem;
-    border-radius: 14px;
-    border: 1px solid #FFE1E9;
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 0.9rem;
-    white-space: nowrap;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-}
-
-.mobile-tag-chip .tag-count {
-    background: rgba(0, 0, 0, 0.1);
-    color: inherit;
-    padding: 0.2rem 0.45rem;
-    border-radius: 10px;
-    font-size: 0.75rem;
-    font-weight: 700;
-}
-
-.mobile-tag-chip.active {
-    background: #FF69B4;
-    color: #fff;
-    border-color: #FF69B4;
-    box-shadow: 0 4px 12px rgba(255, 105, 180, 0.25);
-}
-
-.mobile-tag-chip.active .tag-count {
-    background: rgba(255, 255, 255, 0.25);
-    color: #fff;
-}
-
-@media (max-width: 900px) {
-    .index-layout {
-        flex-direction: column;
-    }
-
-    .index-main {
-        padding: 0 1rem;
-    }
-
-    .mobile-tags-scroller {
-        display: block;
-    }
-}
-
 /* ヒーローセクション */
 .hero {
     background: linear-gradient(135deg, #FFB5C0 0%, #FFA6B3 100%);
@@ -741,25 +555,6 @@ body {
     display: flex;
     gap: 1rem;
     justify-content: center;
-}
-
-@media (max-width: 768px) {
-    .hero {
-        padding: 2.5rem 1.5rem;
-        margin-bottom: 2rem;
-    }
-
-    .hero-title {
-        font-size: 2.1rem;
-    }
-
-    .hero-subtitle {
-        font-size: 1rem;
-    }
-
-    .hero-buttons {
-        flex-direction: column;
-    }
 }
 
 /* ボタン */
