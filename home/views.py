@@ -61,12 +61,14 @@ def mypage(request):
     # 自分の単語帳
     my_wordbooks_qs = WordBook.objects.filter(user=request.user).annotate(like_count=Count('likes')).order_by('-created_at')
     my_wordbooks_count = my_wordbooks_qs.count()
-    my_wordbooks_preview = list(my_wordbooks_qs[:3])
+    my_wordbooks_preview = list(my_wordbooks_qs[:3])  # PC用は3件
+    my_wordbooks_all = list(my_wordbooks_qs)  # モバイル用は全件
 
     # 保存した単語帳（ブックマーク）
     bookmarked_qs = WordBook.objects.filter(bookmarks__user=request.user).filter(Q(is_public=True) | Q(is_ai_generated=True) | Q(user=request.user)).annotate(like_count=Count('likes')).order_by('-bookmarks__created_at')
     saved_wordbooks_count = bookmarked_qs.count()
-    saved_wordbooks_preview = list(bookmarked_qs[:3])
+    saved_wordbooks_preview = list(bookmarked_qs[:3])  # PC用は3件
+    saved_wordbooks_all = list(bookmarked_qs)  # モバイル用は全件
 
     nickname = request.user.first_name or request.user.username
     likes_total = wordBookLike.objects.filter(wordbook__user=request.user).count()
@@ -81,8 +83,10 @@ def mypage(request):
     
     context = {
         'my_wordbooks': my_wordbooks_preview,
+        'my_wordbooks_all': my_wordbooks_all,
         'my_wordbooks_count': my_wordbooks_count,
         'saved_wordbooks': saved_wordbooks_preview,
+        'saved_wordbooks_all': saved_wordbooks_all,
         'saved_wordbooks_count': saved_wordbooks_count,
         'nickname': nickname,
         'likes_total': likes_total,

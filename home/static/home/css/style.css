@@ -1,3 +1,4 @@
+/* CSS Version: 2026-01-27-v2 - Mobile Update */
 /* リセット */
 * {
     margin: 0;
@@ -24,6 +25,21 @@ body {
     flex-direction: column;
     margin: 0;
     padding: 0;
+}
+
+/* PC/モバイル表示切り替え - ベーススタイル（メディアクエリより前に配置必須） */
+.desktop-only {
+    display: grid;
+}
+
+.mobile-only {
+    display: none;
+}
+
+.simple-card-grid {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .main-content {
@@ -111,6 +127,16 @@ body {
 }
 
 @media (max-width: 768px) {
+    /* PC/モバイル表示切り替え */
+    .desktop-only {
+        display: none !important;
+    }
+    
+    .mobile-only {
+        display: flex !important;
+        flex-direction: column;
+    }
+    
     .header .container {
         flex-wrap: wrap;
         gap: 0.75rem;
@@ -129,6 +155,32 @@ body {
     
     .header-search-btn {
         padding: 0.5rem 0.85rem;
+    }
+    
+    /* 固定フッターナビ - モバイルで表示 */
+    .bottom-nav {
+        display: flex;
+    }
+    
+    /* ヘッダーロゴとナビを非表示 */
+    .header .logo {
+        display: none;
+    }
+    
+    .header .desktop-nav {
+        display: none !important;
+    }
+    
+    /* マイページ：モバイル用シンプルカードグリッド */
+    .simple-card-grid.mobile-only {
+        display: flex !important;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    /* マイページ：PC用グリッドを非表示 */
+    .mypage-layout .wordbook-grid.desktop-only {
+        display: none !important;
     }
 }
 
@@ -338,7 +390,7 @@ body {
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 1rem;
+    padding: 0;
 }
 
 /* Index レイアウト（サイドバー付き） */
@@ -353,7 +405,7 @@ body {
 .index-main {
     flex: 1;
     min-width: 0;
-    padding: 0 2rem;
+    padding: 0;
 }
 
 /* タグ検索サイドバー（左側） */
@@ -833,6 +885,10 @@ body {
     margin-bottom: 3rem;
 }
 
+.wordbook-section.padded-section {
+    padding-left: 15px;
+}
+
 /* マイページレイアウト */
 .mypage-layout {
     display: grid;
@@ -1162,19 +1218,37 @@ body {
     vertical-align: middle;
 }
 
+/* シンプルカード用いいねアイコン（小さい版） */
+.like-icon-small {
+    width: 14px;
+    height: 14px;
+    vertical-align: middle;
+    margin-right: 2px;
+}
+
 /* シンプルカードスタイル（新デザイン） */
 .simple-card {
     background: #fff;
     border-radius: 12px;
     padding: 1rem 1.25rem;
+    padding-bottom: 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     text-decoration: none;
     color: #333;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    width: 400px;
+    max-width: 100%;
     transition: all 0.3s ease;
     border: 1px solid #eee;
+}
+
+/* シンプルカードリスト（マイページ用） */
+.simple-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .simple-card:hover {
@@ -1241,22 +1315,6 @@ body {
     border-radius: 4px;
     font-size: 0.7rem;
     font-weight: 500;
-}
-
-/* シンプルカードグリッド */
-.simple-card-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-/* PC/モバイル表示切り替え */
-.desktop-only {
-    display: grid;
-}
-
-.mobile-only {
-    display: none;
 }
 
 /* アクションボタンの並び */
@@ -4297,12 +4355,15 @@ body {
     }
     
     /* マイページ単語帳グリッド */
-    .mypage-layout .wordbook-grid,
-    .saved-wordbooks-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
+    .mypage-layout .wordbook-grid.desktop-only,
+    .saved-wordbooks-grid.desktop-only {
+        display: none !important;
+    }
+    
+    .mypage-layout .simple-card-grid.mobile-only {
+        display: flex !important;
+        flex-direction: column;
         gap: 0.75rem;
-        overflow-x: visible;
     }
     
     .mypage-layout .wordbook-card,

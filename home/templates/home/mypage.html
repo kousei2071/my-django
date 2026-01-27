@@ -72,103 +72,42 @@
         </div>
 
         <div class="wordbook-sections-group">
+            <!-- 自分の単語帳セクション -->
             <section class="wordbook-section">
-                <div class="section-header mypage-section-header">
-                    <h2>自分の単語帳</h2>
-                    <div class="section-header-links">
-                        <a href="{% url 'wordbook_create' %}" class="create-link">+ 新しい単語帳を作成</a>
-                        {% if my_wordbooks_count > 3 %}
-                            <a href="{% url 'mypage_wordbooks_all' %}" class="more-link">もっと見る</a>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <!-- PC用カード -->
-                <div class="wordbook-grid desktop-only">
-                    {% for wordbook in my_wordbooks %}
-                        <a href="{% url 'wordbook_detail' wordbook.pk %}?from=mypage" class="wordbook-card">
-                            <div class="wordbook-image" style="background-color: {{ wordbook.get_background_color|default:'#fffff0' }};">
-                                <img src="{{ wordbook.get_avatar_url }}" alt="{{ wordbook.user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
-                            </div>
-                            <div class="wordbook-info">
-                                <h3>{{ wordbook.title }}</h3>
-                                <p class="card-count">{{ wordbook.card_count }}枚</p>
-                            </div>
-                        </a>
-                    {% empty %}
-                        <p class="empty-message">まだ単語帳がありません。新しい単語帳を作成しましょう！</p>
-                    {% endfor %}
-                </div>
-                
-                <!-- モバイル用シンプルカード -->
-                <div class="simple-card-grid mobile-only">
-                    {% for wordbook in my_wordbooks %}
+                <h2 class="section-title">自分の単語帳</h2>
+                <div class="simple-card-list">
+                    {% for wordbook in my_wordbooks_all %}
                         <a href="{% url 'wordbook_detail' wordbook.pk %}?from=mypage" class="simple-card">
                             <h3 class="simple-card-title">{{ wordbook.title }}</h3>
                             <div class="simple-card-meta">
+                                <span class="simple-card-stat">
+                                    {{ wordbook.card_count }}枚
+                                </span>
                                 <span class="simple-card-stat likes">
-                                    <i class="fas fa-heart"></i> {{ wordbook.likes_count|default:0 }}
+                                    <img src="{% static 'home/images/like-3d.png' %}" alt="いいね" class="like-icon-small"> {{ wordbook.like_count|default:0 }}
                                 </span>
-                                <span class="simple-card-stat stars">
-                                    <i class="fas fa-star"></i> {{ wordbook.card_count }}
-                                </span>
-                                <div class="simple-card-tags">
-                                    {% for tag in wordbook.tags.all|slice:":3" %}
-                                        <span class="simple-card-tag">{{ tag.name }}</span>
-                                    {% endfor %}
-                                </div>
                             </div>
                         </a>
                     {% empty %}
-                        <p class="empty-message">まだ単語帳がありません。新しい単語帳を作成しましょう！</p>
+                        <p class="empty-message">まだ単語帳がありません。<a href="{% url 'wordbook_create' %}">新しい単語帳を作成</a></p>
                     {% endfor %}
                 </div>
             </section>
 
+            <!-- 保存した単語帳セクション -->
             <section class="wordbook-section">
-                <div class="section-header mypage-section-header">
-                    <h2>保存した単語帳</h2>
-                    <div class="section-header-links">
-                        {% if saved_wordbooks_count > 3 %}
-                            <a href="{% url 'mypage_bookmarks_all' %}" class="more-link">もっと見る</a>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <!-- PC用カード -->
-                <div class="wordbook-grid saved-wordbooks-grid desktop-only">
-                    {% for wordbook in saved_wordbooks %}
-                        <a href="{% url 'wordbook_detail' wordbook.pk %}" class="wordbook-card">
-                            <div class="wordbook-image" style="background-color: {{ wordbook.get_background_color|default:'#fffff0' }};">
-                                <img src="{{ wordbook.get_avatar_url }}" alt="{{ wordbook.user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
-                            </div>
-                            <div class="wordbook-info">
-                                <h3>{{ wordbook.title }}</h3>
-                                <p class="card-count">{{ wordbook.card_count }}枚</p>
-                            </div>
-                        </a>
-                    {% empty %}
-                        <p class="empty-message">まだ保存された単語帳はありません。</p>
-                    {% endfor %}
-                </div>
-                
-                <!-- モバイル用シンプルカード -->
-                <div class="simple-card-grid mobile-only">
-                    {% for wordbook in saved_wordbooks %}
+                <h2 class="section-title">保存した単語帳</h2>
+                <div class="simple-card-list">
+                    {% for wordbook in saved_wordbooks_all %}
                         <a href="{% url 'wordbook_detail' wordbook.pk %}" class="simple-card">
                             <h3 class="simple-card-title">{{ wordbook.title }}</h3>
                             <div class="simple-card-meta">
+                                <span class="simple-card-stat">
+                                    {{ wordbook.card_count }}枚
+                                </span>
                                 <span class="simple-card-stat likes">
-                                    <i class="fas fa-heart"></i> {{ wordbook.likes_count|default:0 }}
+                                    <img src="{% static 'home/images/like-3d.png' %}" alt="いいね" class="like-icon-small"> {{ wordbook.like_count|default:0 }}
                                 </span>
-                                <span class="simple-card-stat stars">
-                                    <i class="fas fa-star"></i> {{ wordbook.card_count }}
-                                </span>
-                                <div class="simple-card-tags">
-                                    {% for tag in wordbook.tags.all|slice:":3" %}
-                                        <span class="simple-card-tag">{{ tag.name }}</span>
-                                    {% endfor %}
-                                </div>
                             </div>
                         </a>
                     {% empty %}
