@@ -766,8 +766,9 @@ body {
 
 .form-group label {
     display: block;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.7rem;
     font-weight: bold;
+    font-size: 1.15rem;
 }
 
 .form-input {
@@ -776,6 +777,14 @@ body {
     border: 2px solid #ddd;
     border-radius: 6px;
     font-size: 1rem;
+    background: #fff;
+}
+
+.form-input.register-input {
+    padding: 1.1rem 1rem;
+    border-radius: 8px;
+    font-size: 1.15rem;
+    background: #f9f9f9;
 }
 
 .form-input:focus {

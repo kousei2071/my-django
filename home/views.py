@@ -100,15 +100,22 @@ def mypage(request):
 
 # ユーザー登録
 def register_view(request):
+    from django import forms
+    class CustomUserCreationForm(UserCreationForm):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            for field in self.fields.values():
+                field.widget.attrs['class'] = 'form-input register-input'
+
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
             messages.success(request, '会員登録が完了しました!')
             return redirect('mypage')
     else:
-        form = UserCreationForm()
+        form = CustomUserCreationForm()
     return render(request, 'home/register.html', {'form': form})
 
 # ログイン
@@ -889,13 +896,3 @@ def user_followers_list(request, username):
     
     return render(request, 'home/user_followers_list.html', context)
 
-
-
-# 管理者専用マイページ
-@login_required
-def mypage_view(request):
-    # 自分の単語帳
-    my_wordbooks_qs = WordBook.objects.filter(user=request.user).annotate(like_count=Count('likes')).order_by('-created_at')
-    my_wordbooks_count = my_wordbooks_qs.count()
-    my_wordbooks_preview = list(my_wordbooks_qs[:3])  # PC用は3件
-    my_wordbooks_all = list(my_wordbooks_qs)  # モバイル用は全件
