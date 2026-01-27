@@ -5,12 +5,12 @@
 {% block content %}
 {% load static %}
 <div class="container">
-    <div class="section-header">
+    <div class="section-header collection-header">
         <h2>{{ title }}</h2>
         <a href="{% url 'mypage' %}" class="btn btn-secondary">マイページに戻る</a>
     </div>
 
-    <div class="wordbook-grid">
+    <div class="wordbook-grid collection-grid">
         {% for wordbook in wordbooks %}
             <a href="{% url 'wordbook_detail' wordbook.pk %}{% if from_source == 'mypage' %}?from=mypage{% endif %}" class="wordbook-card">
                 <div class="wordbook-image" style="background-color: {{ wordbook.get_background_color|default:'#fffff0' }};">
@@ -26,4 +26,47 @@
         {% endfor %}
     </div>
 </div>
+
+<style>
+.collection-header {
+    margin-bottom: 1.5rem;
+}
+
+.collection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .collection-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    
+    .collection-header h2 {
+        font-size: 1.4rem;
+    }
+    
+    .collection-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .collection-header h2 {
+        font-size: 1.2rem;
+    }
+    
+    .collection-header .btn {
+        width: 100%;
+    }
+    
+    .collection-grid {
+        gap: 0.75rem;
+    }
+}
+</style>
 {% endblock %}

@@ -51,6 +51,27 @@
 
     <!-- メインコンテンツ -->
     <div class="index-main">
+        <!-- モバイル用タグセクション -->
+        <div class="mobile-tags-section">
+            <div class="mobile-tags-header">
+                <h4 class="mobile-tags-title">🏷️ タグで検索</h4>
+                {% if selected_tags %}
+                    <a href="{% url 'home' %}" class="tags-clear-btn">クリア</a>
+                {% endif %}
+            </div>
+            <div class="mobile-tags-scroll">
+                {% for tag in all_tags|slice:":15" %}
+                <a href="?tag={{ tag.name }}" 
+                   class="mobile-tag-chip {% if tag.name in selected_tag_names %}active{% endif %}">
+                    {{ tag.name }}
+                    <span class="mobile-tag-count">{{ tag.usage_count }}</span>
+                </a>
+                {% empty %}
+                <span style="color: #999; font-size: 0.85rem;">タグがありません</span>
+                {% endfor %}
+            </div>
+        </div>
+
         <div class="hero">
             <div class="hero-content">
                 <h1 class="hero-title">TANKORE</h1>

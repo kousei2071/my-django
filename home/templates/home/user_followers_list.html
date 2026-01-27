@@ -179,8 +179,18 @@
         padding: 1rem;
     }
     
+    .follow-list-header h1 {
+        font-size: 1.5rem;
+    }
+    
     .user-item {
         padding: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .user-link {
+        flex: 1 1 100%;
+        margin-bottom: 0.75rem;
     }
     
     .user-avatar {
@@ -188,9 +198,63 @@
         height: 50px;
     }
     
+    .user-username {
+        font-size: 1rem;
+    }
+    
     .follow-btn {
         padding: 0.4rem 1rem;
         font-size: 0.9rem;
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .follow-list-container {
+        padding: 0.75rem;
+    }
+    
+    .follow-list-header h1 {
+        font-size: 1.25rem;
+    }
+    
+    .back-btn {
+        font-size: 0.9rem;
+    }
+    
+    .user-item {
+        padding: 0.75rem;
+    }
+    
+    .user-avatar {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .user-username {
+        font-size: 0.95rem;
+    }
+    
+    .user-display-name {
+        font-size: 0.8rem;
+    }
+    
+    .follow-btn {
+        padding: 0.35rem 0.8rem;
+        font-size: 0.85rem;
+    }
+    
+    .empty-state {
+        padding: 2rem 1rem;
+    }
+    
+    .empty-state i {
+        font-size: 2rem;
+    }
+    
+    .empty-state p {
+        font-size: 0.95rem;
     }
 }
 </style>

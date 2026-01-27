@@ -28,7 +28,8 @@
                 </div>
             </form>
             
-            <nav class="nav">
+            <!-- PC用ナビゲーション -->
+            <nav class="nav desktop-nav">
                 {% if user.is_authenticated %}
                     {% if user.username == 'sakana' and user.first_name == 'kousei1207' %}
                     <a href="{% url 'admin_dashboard' %}" class="nav-link nav-icon-link" data-tooltip="管理者ダッシュボード" title="管理者ダッシュボード">
@@ -49,7 +50,6 @@
                         <i class="fas fa-user-plus fa-2x"></i>
                     </a>
                 {% endif %}
-                <button class="menu-btn">☰</button>
             </nav>
         </div>
     </header>
@@ -69,10 +69,34 @@
         {% endblock %}
     </main>
 
-    <!-- フッター -->
-    <footer class="footer">
-        <p>@kousei tomita</p>
-    </footer>
+    <!-- 固定フッターナビゲーション -->
+    <nav class="bottom-nav">
+        <a href="{% url 'home' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+            <i class="fas fa-home"></i>
+            <span>ホーム</span>
+        </a>
+        {% if user.is_authenticated %}
+        <a href="{% url 'mypage' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'mypage' %}active{% endif %}">
+            <i class="fas fa-user"></i>
+            <span>マイページ</span>
+        </a>
+        {% endif %}
+        <a href="{% url 'wordbook_list' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'wordbook_list' %}active{% endif %}">
+            <i class="fas fa-tags"></i>
+            <span>タグ検索</span>
+        </a>
+        {% if user.is_authenticated %}
+        <a href="{% url 'logout' %}" class="bottom-nav-item">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>ログアウト</span>
+        </a>
+        {% else %}
+        <a href="{% url 'login' %}" class="bottom-nav-item">
+            <i class="fas fa-sign-in-alt"></i>
+            <span>ログイン</span>
+        </a>
+        {% endif %}
+    </nav>
 
     <script src="{% static 'home/js/main.js' %}"></script>
 </body>

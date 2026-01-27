@@ -52,6 +52,27 @@
 
     <!-- メインコンテンツ -->
     <div class="index-main">
+        <!-- モバイル用タグセクション -->
+        <div class="mobile-tags-section">
+            <div class="mobile-tags-header">
+                <h4 class="mobile-tags-title">🏷️ タグで検索</h4>
+                {% if selected_tags or search_query %}
+                    <a href="{% url 'wordbook_list' %}" class="tags-clear-btn">クリア</a>
+                {% endif %}
+            </div>
+            <div class="mobile-tags-scroll">
+                {% for tag in all_tags|slice:":15" %}
+                <a href="{% url 'wordbook_list' %}?tag={{ tag.name|urlencode }}" 
+                   class="mobile-tag-chip {% if tag.name in selected_tag_names %}active{% endif %}">
+                    {{ tag.name }}
+                    <span class="mobile-tag-count">{{ tag.usage_count }}</span>
+                </a>
+                {% empty %}
+                <span style="color: #999; font-size: 0.85rem;">タグがありません</span>
+                {% endfor %}
+            </div>
+        </div>
+
         <!-- 検索結果の表示 -->
         {% if is_filtered %}
             <div class="filter-result-info">
@@ -86,7 +107,9 @@
         <!-- AIの単語帳セクション -->
         <section class="wordbook-section" style="margin-bottom: 250px;">
             <h2 class="section-title">AIの単語帳</h2>
-            <div class="wordbook-grid">
+            
+            <!-- PC用カード -->
+            <div class="wordbook-grid desktop-only">
                 {% for wordbook in ai_wordbooks %}
                     <a href="{% url 'wordbook_detail' wordbook.pk %}" class="wordbook-card">
                         <div class="wordbook-image" style="background-color: {{ wordbook.get_background_color|default:'#fffff0' }};">
@@ -95,6 +118,30 @@
                         <div class="wordbook-info">
                             <h3>{{ wordbook.title }}</h3>
                             <p class="card-count">{{ wordbook.card_count }}枚・<img src="{% static 'home/images/like-3d.png' %}" alt="いいね" class="like-icon"> {{ wordbook.like_count|default:0 }}</p>
+                        </div>
+                    </a>
+                {% empty %}
+                    <p class="empty-message">まだ単語帳がありません</p>
+                {% endfor %}
+            </div>
+            
+            <!-- モバイル用シンプルカード -->
+            <div class="simple-card-grid mobile-only">
+                {% for wordbook in ai_wordbooks %}
+                    <a href="{% url 'wordbook_detail' wordbook.pk %}" class="simple-card">
+                        <h3 class="simple-card-title">{{ wordbook.title }}</h3>
+                        <div class="simple-card-meta">
+                            <span class="simple-card-stat likes">
+                                <i class="fas fa-heart"></i> {{ wordbook.like_count|default:0 }}
+                            </span>
+                            <span class="simple-card-stat stars">
+                                <i class="fas fa-star"></i> {{ wordbook.card_count }}
+                            </span>
+                            <div class="simple-card-tags">
+                                {% for tag in wordbook.tags.all|slice:":3" %}
+                                    <span class="simple-card-tag">{{ tag.name }}</span>
+                                {% endfor %}
+                            </div>
                         </div>
                     </a>
                 {% empty %}
