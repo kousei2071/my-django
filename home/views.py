@@ -891,4 +891,11 @@ def user_followers_list(request, username):
 
 
 
-#管理者専用：ユーザー一覧
+# 管理者専用マイページ
+@login_required
+def mypage_view(request):
+    # 自分の単語帳
+    my_wordbooks_qs = WordBook.objects.filter(user=request.user).annotate(like_count=Count('likes')).order_by('-created_at')
+    my_wordbooks_count = my_wordbooks_qs.count()
+    my_wordbooks_preview = list(my_wordbooks_qs[:3])  # PC用は3件
+    my_wordbooks_all = list(my_wordbooks_qs)  # モバイル用は全件
