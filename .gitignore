@@ -5,21 +5,32 @@
 __pycache__/
 local_settings.py
 db.sqlite3
+db.sqlite3-journal
 media/
+staticfiles/
 
 # Virtual Environment
 .venv/
 venv/
 env/
+ENV/
 
-# IDE
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# IDE / Editor
 .vscode/
 .idea/
 *.swp
 *.swo
+.cursor/
 
 # macOS
 .DS_Store
+.AppleDouble
+.LSOverride
 
 # Python
 *.py[cod]
@@ -38,25 +49,31 @@ parts/
 sdist/
 var/
 wheels/
+share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
-# Environments
-.env
-.venv
-ENV/
-env/
-venv/
-
-# Coverage reports
+# Testing / Coverage
 htmlcov/
 .tox/
+.nox/
 .coverage
 .coverage.*
 .cache
 nosetests.xml
 coverage.xml
 *.cover
+*.py,cover
 .hypothesis/
 .pytest_cache/
+cover/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Ruff
+.ruff_cache/

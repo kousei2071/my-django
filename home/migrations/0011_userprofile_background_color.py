@@ -10,18 +10,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.SeparateDatabaseAndState(
-            state_operations=[
-                migrations.AddField(
-                    model_name='userprofile',
-                    name='background_color',
-                    field=models.CharField(default='#fffff0', max_length=7),
-                ),
-            ],
-            database_operations=[],
-        ),
-        migrations.RunSQL(
-            sql="UPDATE home_userprofile SET background_color = '#fffff0' WHERE background_color IS NULL OR background_color = ''",
-            reverse_sql=migrations.RunSQL.noop,
+        migrations.AddField(
+            model_name='userprofile',
+            name='background_color',
+            field=models.CharField(default='#fffff0', max_length=7),
         ),
     ]
