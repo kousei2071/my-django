@@ -37,11 +37,11 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 if not ALLOWED_HOSTS:
-    render_hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-    if render_hostname:
-        ALLOWED_HOSTS = [render_hostname, 'localhost', '127.0.0.1']
-    else:
-        ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+    if render_hostname := os.environ.get('RENDER_EXTERNAL_HOSTNAME'):
+        ALLOWED_HOSTS.append(render_hostname)
+    if railway_hostname := os.environ.get('RAILWAY_PUBLIC_DOMAIN'):
+        ALLOWED_HOSTS.append(railway_hostname)
 
 
 # Application definition
@@ -166,9 +166,10 @@ CSRF_TRUSTED_ORIGINS = [
     if origin.strip()
 ]
 if not CSRF_TRUSTED_ORIGINS:
-    render_url = os.environ.get('RENDER_EXTERNAL_URL')
-    if render_url:
-        CSRF_TRUSTED_ORIGINS = [render_url]
+    if render_url := os.environ.get('RENDER_EXTERNAL_URL'):
+        CSRF_TRUSTED_ORIGINS.append(render_url)
+    if railway_domain := os.environ.get('RAILWAY_PUBLIC_DOMAIN'):
+        CSRF_TRUSTED_ORIGINS.append(f'https://{railway_domain}')
 
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
